@@ -5,6 +5,8 @@ from urllib.parse import urlencode
 import sqlite3
 import os
 import json
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
 
@@ -13,10 +15,119 @@ DB_NAME = "cotizaciones.db"
 
 
 def obtener_conexion():
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
+    database_url = os.environ.get("DATABASE_URL")
+
+    if not database_url:
+        raise ValueError("No se encontró DATABASE_URL en las variables de entorno.")
+
+    conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
     return conn
 
+def init_db():
+    conn = obtener_conexion()
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS cotizaciones (
+        id SERIAL PRIMARY KEY,
+        no_referencia TEXT NOT NULL,
+        fecha TEXT NOT NULL,
+        empresa TEXT NOT NULL,
+        ingeniero TEXT,
+        asunto TEXT NOT NULL,
+        total_numero DOUBLE PRECISION NOT NULL,
+        total_letras TEXT NOT NULL,
+        estado TEXT NOT NULL DEFAULT 'Pendiente',
+        pdf_nombre TEXT,
+        su_referencia TEXT,
+        precio_texto TEXT,
+        tiempo_entrega TEXT,
+        validez TEXT,
+        encargado TEXT,
+        contacto_nombre TEXT,
+        contacto_telefono TEXT,
+        contacto_correo TEXT,
+        filas_html TEXT,
+        items_json TEXT
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS empresas (
+        id SERIAL PRIMARY KEY,
+        nombre TEXT NOT NULL UNIQUE
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS ingenieros (
+        id SERIAL PRIMARY KEY,
+        empresa_id INTEGER NOT NULL,
+        titulo TEXT,
+        nombre TEXT NOT NULL,
+        FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS asuntos_frecuentes (
+        id SERIAL PRIMARY KEY,
+        empresa_id INTEGER,
+        asunto TEXT NOT NULL,
+        FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS configuracion (
+        clave TEXT PRIMARY KEY,
+        valor TEXT NOT NULL
+    )
+    """)
+
+    cur.execute("""
+    INSERT INTO configuracion (clave, valor)
+    VALUES ('correlativo', '1')
+    ON CONFLICT (clave) DO NOTHING
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    
+def seed_db():
+    conn = obtener_conexion()
+    cur = conn.cursor()
+
+    cur.execute("INSERT INTO empresas (nombre) VALUES (%s) ON CONFLICT (nombre) DO NOTHING", ("GLAD",))
+    cur.execute("INSERT INTO empresas (nombre) VALUES (%s) ON CONFLICT (nombre) DO NOTHING", ("Chocolates",))
+
+    cur.execute("SELECT id, nombre FROM empresas")
+    empresas = {row["nombre"]: row["id"] for row in cur.fetchall()}
+
+    if "GLAD" in empresas:
+        cur.execute("""
+            INSERT INTO ingenieros (empresa_id, titulo, nombre)
+            SELECT %s, %s, %s
+            WHERE NOT EXISTS (
+                SELECT 1 FROM ingenieros WHERE empresa_id = %s AND nombre = %s
+            )
+        """, (empresas["GLAD"], "Ing.", "Néstor", empresas["GLAD"], "Néstor"))
+
+    if "Chocolates" in empresas:
+        cur.execute("""
+            INSERT INTO ingenieros (empresa_id, titulo, nombre)
+            SELECT %s, %s, %s
+            WHERE NOT EXISTS (
+                SELECT 1 FROM ingenieros WHERE empresa_id = %s AND nombre = %s
+            )
+        """, (empresas["Chocolates"], "Lic.", "William", empresas["Chocolates"], "William"))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+        
 
 def obtener_fecha_guatemala():
     meses = [
@@ -39,32 +150,40 @@ def obtener_fecha_validez():
 def obtener_no_referencia():
     anio = datetime.now().year
 
-    if not os.path.exists(ARCHIVO_CORRELATIVO):
-        with open(ARCHIVO_CORRELATIVO, "w", encoding="utf-8") as archivo:
-            archivo.write("1")
-        correlativo = 1
-    else:
-        with open(ARCHIVO_CORRELATIVO, "r", encoding="utf-8") as archivo:
-            contenido = archivo.read().strip()
-            correlativo = int(contenido) if contenido.isdigit() else 1
+    conn = obtener_conexion()
+    cur = conn.cursor()
+
+    cur.execute("SELECT valor FROM configuracion WHERE clave = 'correlativo'")
+    row = cur.fetchone()
+
+    correlativo = int(row["valor"]) if row else 1
+
+    cur.close()
+    conn.close()
 
     return f"NT-{anio}-{correlativo:04d}"
 
 
 def incrementar_correlativo():
-    if not os.path.exists(ARCHIVO_CORRELATIVO):
-        with open(ARCHIVO_CORRELATIVO, "w", encoding="utf-8") as archivo:
-            archivo.write("2")
-        return
+    conn = obtener_conexion()
+    cur = conn.cursor()
 
-    with open(ARCHIVO_CORRELATIVO, "r", encoding="utf-8") as archivo:
-        contenido = archivo.read().strip()
-        correlativo = int(contenido) if contenido.isdigit() else 1
+    cur.execute("SELECT valor FROM configuracion WHERE clave = 'correlativo'")
+    row = cur.fetchone()
 
+    correlativo = int(row["valor"]) if row else 1
     correlativo += 1
 
-    with open(ARCHIVO_CORRELATIVO, "w", encoding="utf-8") as archivo:
-        archivo.write(str(correlativo))
+    cur.execute("""
+        INSERT INTO configuracion (clave, valor)
+        VALUES ('correlativo', %s)
+        ON CONFLICT (clave)
+        DO UPDATE SET valor = EXCLUDED.valor
+    """, (str(correlativo),))
+
+    conn.commit()
+    cur.close()
+    conn.close()
 
 def obtener_empresas():
     conn = obtener_conexion()
@@ -78,9 +197,10 @@ def obtener_ingenieros_por_empresa(empresa_id):
     ingenieros = conn.execute("""
         SELECT id, nombre, titulo
         FROM ingenieros
-        WHERE empresa_id = ?
+        WHERE empresa_id = %s
         ORDER BY nombre
     """, (empresa_id,)).fetchall()
+    conn.commit()
     conn.close()
     return ingenieros        
 
@@ -135,7 +255,7 @@ def obtener_asuntos_sugeridos(empresa_id=None):
         asuntos = conn.execute("""
             SELECT asunto
             FROM asuntos_frecuentes
-            WHERE empresa_id = ? OR empresa_id IS NULL
+            WHERE empresa_id = %s OR empresa_id IS NULL
             ORDER BY asunto
         """, (empresa_id,)).fetchall()
     else:
@@ -144,7 +264,7 @@ def obtener_asuntos_sugeridos(empresa_id=None):
             FROM asuntos_frecuentes
             ORDER BY asunto
         """).fetchall()
-
+    conn.commit()
     conn.close()
     return asuntos    
 
@@ -232,7 +352,7 @@ def cambiar_estado(id):
 
     conn = obtener_conexion()
     conn.execute(
-        "UPDATE cotizaciones SET estado = ? WHERE id = ?",
+        "UPDATE cotizaciones SET estado = ? WHERE id = $s",
         (nuevo_estado, id)
     )
     conn.commit()
@@ -244,7 +364,7 @@ def cambiar_estado(id):
 @app.route("/descargar-pdf/<int:id>")
 def descargar_pdf_historial(id):
     conn = obtener_conexion()
-    cotizacion = conn.execute("SELECT * FROM cotizaciones WHERE id = ?", (id,)).fetchone()
+    cotizacion = conn.execute("SELECT * FROM cotizaciones WHERE id = %s", (id,)).fetchone()
     conn.close()
 
     if not cotizacion:
@@ -294,7 +414,7 @@ def descargar_pdf_historial(id):
 @app.route("/duplicar/<int:id>")
 def duplicar_cotizacion(id):
     conn = obtener_conexion()
-    c = conn.execute("SELECT * FROM cotizaciones WHERE id = ?", (id,)).fetchone()
+    c = conn.execute("SELECT * FROM cotizaciones WHERE id = %s", (id,)).fetchone()
     conn.close()
 
     if not c:
@@ -317,7 +437,7 @@ def duplicar_cotizacion(id):
 @app.route("/editar/<int:id>")
 def editar_cotizacion(id):
     conn = obtener_conexion()
-    c = conn.execute("SELECT * FROM cotizaciones WHERE id = ?", (id,)).fetchone()
+    c = conn.execute("SELECT * FROM cotizaciones WHERE id = %s", (id,)).fetchone()
     conn.close()
 
     if not c:
@@ -371,7 +491,7 @@ def guardar_edicion():
             total_numero = ?,
             total_letras = ?,
             fecha = ?
-        WHERE id = ?
+        WHERE id = %s
     """, (
         data.get("empresa", ""),
         data.get("ingeniero", ""),
@@ -399,7 +519,7 @@ def guardar_edicion():
 @app.route("/eliminar/<int:id>", methods=["POST"])
 def eliminar_cotizacion(id):
     conn = obtener_conexion()
-    conn.execute("DELETE FROM cotizaciones WHERE id = ?", (id,))
+    conn.execute("DELETE FROM cotizaciones WHERE id = %s", (id,))
     conn.commit()
     conn.close()
 
@@ -510,9 +630,9 @@ def agregar_asunto():
 def eliminar_empresa(id):
     conn = obtener_conexion()
 
-    conn.execute("DELETE FROM ingenieros WHERE empresa_id = ?", (id,))
-    conn.execute("DELETE FROM asuntos_frecuentes WHERE empresa_id = ?", (id,))
-    conn.execute("DELETE FROM empresas WHERE id = ?", (id,))
+    conn.execute("DELETE FROM ingenieros WHERE empresa_id = %s", (id,))
+    conn.execute("DELETE FROM asuntos_frecuentes WHERE empresa_id = %s", (id,))
+    conn.execute("DELETE FROM empresas WHERE id = %s", (id,))
 
     conn.commit()
     conn.close()
@@ -523,7 +643,7 @@ def eliminar_empresa(id):
 @app.route("/eliminar-ingeniero/<int:id>", methods=["POST"])
 def eliminar_ingeniero(id):
     conn = obtener_conexion()
-    conn.execute("DELETE FROM ingenieros WHERE id = ?", (id,))
+    conn.execute("DELETE FROM ingenieros WHERE id = %s", (id,))
     conn.commit()
     conn.close()
 
@@ -533,11 +653,13 @@ def eliminar_ingeniero(id):
 @app.route("/eliminar-asunto/<int:id>", methods=["POST"])
 def eliminar_asunto(id):
     conn = obtener_conexion()
-    conn.execute("DELETE FROM asuntos_frecuentes WHERE id = ?", (id,))
+    conn.execute("DELETE FROM asuntos_frecuentes WHERE id = %s", (id,))
     conn.commit()
     conn.close()
 
     return redirect("/catalogos")
 
 if __name__ == "__main__":
+    init_db()
+    seed_db()
     app.run(debug=True)
