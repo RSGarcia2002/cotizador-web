@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cotización</title>
+    <style>
+      @page {
+        size: Letter;
+        margin: 10mm 10mm 10mm 10mm;
+      }
+
+      body {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 15px;
+        color: #000;
+        line-height: 1.15;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .borde,
+      .borde td,
+      .borde th {
+        border: 1px solid #000;
+      }
+
+      .sin-borde td {
+        border: none;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .right {
+        text-align: right;
+      }
+
+      .top {
+        vertical-align: top;
+      }
+
+      .bottom {
+        vertical-align: bottom;
+      }
+
+      .mt-1 {
+        margin-top: 8px;
+      }
+      .mt-2 {
+        margin-top: 16px;
+      }
+      .mt-3 {
+        margin-top: 24px;
+      }
+
+      .titulo {
+        margin: 10px 0 6px 0;
+      }
+
+      .fila-item {
+        height: 90px;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+
+      .subrayado {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <table class="sin-borde">
+      <tr>
+        <td>
+          {{ data.empresa }}<br />
+           {{ data.ingeniero }}<br />
+          Presente.
+        </td>
+        <td class="right top">{{ data.fecha }}</td>
+      </tr>
+    </table>
+
+    <p class="mt-2 bold">Attn.</p>
+
+    <table class="borde">
+      <tr>
+        <th style="text-align: left">SU REFERENCIA</th>
+        <th class="center">NUESTRA REFERENCIA</th>
+        <th class="right">GUATEMALA</th>
+      </tr>
+      <tr>
+        <td class="top">{{ data.su_referencia }}</td>
+        <td class="center top">{{ data.no_referencia }}</td>
+        <td class="center top">{{ data.fecha_corta }}</td>
+      </tr>
+    </table>
+
+    <table class="sin-borde mt-2">
+      <tr>
+        <td style="width: 180px" class="bold">ASUNTO:</td>
+        <td class="subrayado">{{ data.asunto }}</td>
+      </tr>
+      <tr>
+        <td class="bold">PRECIOS:</td>
+        <td>{{ data.precio_texto }}</td>
+      </tr>
+      <tr>
+        <td class="bold">TIEMPO DE ENTREGA:</td>
+        <td>{{ data.tiempo_entrega }}</td>
+      </tr>
+      <tr>
+        <td class="bold">VALIDEZ:</td>
+        <td>{{ data.validez }}</td>
+      </tr>
+      <tr>
+        <td class="bold">ENCARGADO:</td>
+        <td>{{ data.encargado }}</td>
+      </tr>
+    </table>
+
+    <div class="titulo">{{ data.asunto }}</div>
+
+    <table class="borde">
+      <thead>
+        <tr>
+          <th style="width: 12%">CANTIDAD</th>
+          <th style="width: 43%">DESCRIPCION</th>
+          <th style="width: 22%">PRECIO UNIDAD</th>
+          <th style="width: 23%">PRECIO TOTAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ data.filas_html | safe }}
+        <tr>
+          <td style="border: none"></td>
+          <td style="border: none"></td>
+          <td>
+            <table>
+              <tr>
+                <td class="center">TOTAL</td>
+                <td></td>
+              </tr>
+            </table>
+          </td>
+          <td>
+            <table>
+              <tr>
+                <td class="center" style="width: 25%">Q</td>
+                <td class="right" style="width: 75%; padding-right: 6px">
+                  {{ data.total_numero }}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="mt-2 bold">
+      PRECIO DE ESTA OFERTA...............Q {{ data.total_numero }}
+    </p>
+    <p class="bold">PRECIO EN LETRAS...............{{ data.total_letras }}</p>
+
+    <p class="mt-3">Esperando poder servirles y agradeciendo su atención.</p>
+    <br><br><br><br><br>
+    <p class="bold">{{ data.contacto_nombre }}</p>
+    <p>Teléfono {{ data.contacto_telefono }}</p>
+    <p>{{ data.contacto_correo }}</p>
+  </body>
+</html>
