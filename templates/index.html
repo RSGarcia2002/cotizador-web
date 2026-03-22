@@ -1,6 +1,10 @@
-<!doctype html>
-<html lang="es">
-  <head>
+{% extends "base.html" %}
+
+{% block title %}Crear cotización{% endblock %}
+
+{% block content %}
+
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cotizador</title>
@@ -90,14 +94,8 @@
         }
       }
     </style>
-  </head>
-  <body>
-    <div class="container py-4">
-      <div class="mb-3">
-        <a href="/cotizaciones" class="btn btn-warning">Ver historial</a>
-        <a href="/catalogos" class="btn btn-outline-primary">Catálogos</a>
-        
-      </div>
+
+
       <div class="card shadow-sm card-seccion mb-4">
         <div class="card-body">
           <h1 class="h3 mb-4">Nueva Cotización</h1>
@@ -227,8 +225,27 @@
               </div>
             </div>
           </div>
-
-          <hr class="my-4" />
+<br>
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-6">
+        <label for="excelFile" class="form-label">Importar ítems desde Excel</label>
+        <input class="form-control" type="file" id="excelFile" accept=".xlsx,.xls">
+      </div>
+      <div class="col-md-3">
+        <button type="button" class="btn btn-success w-100" onclick="importarExcel()">
+          Importar Excel
+        </button>
+      </div>
+      <div class="col-md-3">
+        <small class="text-muted">
+          Encabezados: <b>cantidad</b>, <b>descripcion</b>, <b>precio_unitario</b>
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
 
           <h2 class="h5 titulo-seccion">Detalle de la oferta</h2>
           <div id="tablaContainer"></div>
@@ -1358,6 +1375,69 @@ function guardarEdicion() {
           });
       });
 
+    async function importarExcel() {
+        const input = document.getElementById("excelFile");
+
+        if (!input.files.length) {
+          alert("Selecciona un archivo Excel.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("archivo", input.files[0]);
+
+        try {
+          const response = await fetch("/importar-excel", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (!data.ok) {
+            alert(data.error || "No se pudo importar el Excel.");
+            return;
+          }
+
+          cargarItemsDesdeExcel(data.items);
+          alert("Excel importado correctamente.");
+        } catch (error) {
+          console.error(error);
+          alert("Ocurrió un error al importar el archivo.");
+        }
+      }
+
+      function cargarItemsDesdeExcel(items) {
+        if (!items || !items.length) {
+          alert("El Excel no contiene ítems válidos.");
+          return;
+        }
+
+        document.getElementById("cantidadItems").value = items.length;
+
+        generarTabla();
+
+        const filas = document.querySelectorAll("#tablaContainer tbody tr");
+
+        items.forEach((item, index) => {
+          const fila = filas[index];
+          if (!fila) return;
+
+          const inputCantidad = fila.querySelector(".cantidad");
+          const inputDescripcion = fila.querySelector(".descripcion");
+          const inputPrecio = fila.querySelector(".precio");
+
+          if (inputCantidad) inputCantidad.value = item.cantidad;
+          if (inputDescripcion) inputDescripcion.value = item.descripcion;
+          if (inputPrecio) inputPrecio.value = item.precio_unitario;
+
+          if (inputCantidad) inputCantidad.dispatchEvent(new Event("input", { bubbles: true }));
+          if (inputDescripcion) inputDescripcion.dispatchEvent(new Event("input", { bubbles: true }));
+          if (inputPrecio) inputPrecio.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+
+        calcularTotales();
+      } 
     </script>
     <input
       type="hidden"
@@ -1366,5 +1446,4 @@ function guardarEdicion() {
     />
     <input type="hidden" id="modoEdicion" value="{{ duplicado.modo_edicion }}">
     <input type="hidden" id="cotizacionId" value="{{ duplicado.id }}">
-  </body>
-</html>
+{% endblock %}
