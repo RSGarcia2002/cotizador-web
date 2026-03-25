@@ -79,16 +79,114 @@ def init_db():
         ("correlativo", "1"),
     )
 
+    # =========================
+    # AMPLIAR TABLA EMPRESAS
+    # =========================
+    execute("ALTER TABLE empresas ADD COLUMN IF NOT EXISTS nit TEXT")
+    execute("ALTER TABLE empresas ADD COLUMN IF NOT EXISTS direccion TEXT")
+    execute("ALTER TABLE empresas ADD COLUMN IF NOT EXISTS dias_credito INTEGER NOT NULL DEFAULT 30")
+    execute("ALTER TABLE empresas ADD COLUMN IF NOT EXISTS plantilla_ocr TEXT")
+    execute("ALTER TABLE empresas ADD COLUMN IF NOT EXISTS formato_descripcion_sat TEXT")
+    execute("ALTER TABLE empresas ADD COLUMN IF NOT EXISTS activo BOOLEAN NOT NULL DEFAULT TRUE")
+
+    # =========================
+    # ORDENES DE COMPRA
+    # =========================
+    execute(
+        """
+        CREATE TABLE IF NOT EXISTS ordenes_compra (
+            id SERIAL PRIMARY KEY,
+            empresa_id INTEGER NOT NULL,
+            numero_orden TEXT NOT NULL,
+            fecha_orden DATE,
+            subtotal DOUBLE PRECISION NOT NULL DEFAULT 0,
+            iva DOUBLE PRECISION NOT NULL DEFAULT 0,
+            total DOUBLE PRECISION NOT NULL DEFAULT 0,
+            moneda TEXT NOT NULL DEFAULT 'GTQ',
+            proyecto TEXT,
+            descripcion_extraida TEXT,
+            condiciones_pago TEXT,
+            dias_credito INTEGER,
+            fecha_estimada_pago DATE,
+            estado TEXT NOT NULL DEFAULT 'Pendiente de facturar',
+            archivo_orden TEXT,
+            datos_ocr_json TEXT,
+            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+            FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE RESTRICT
+        )
+        """
+    )
+
+    execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS ux_ordenes_compra_empresa_numero
+        ON ordenes_compra (empresa_id, numero_orden)
+        """
+    )
+
+    # =========================
+    # FACTURAS DE ORDENES
+    # =========================
+    execute(
+        """
+        CREATE TABLE IF NOT EXISTS facturas_oc (
+            id SERIAL PRIMARY KEY,
+            orden_compra_id INTEGER NOT NULL UNIQUE,
+            numero_factura TEXT,
+            fecha_factura DATE,
+            nit_facturado TEXT,
+            direccion_facturada TEXT,
+            descripcion_sat TEXT,
+            monto_facturado DOUBLE PRECISION NOT NULL DEFAULT 0,
+            archivo_factura TEXT,
+            archivo_expediente TEXT,
+            fecha_pago_real DATE,
+            estado_pago TEXT NOT NULL DEFAULT 'Pendiente',
+            observaciones TEXT,
+            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+            FOREIGN KEY (orden_compra_id) REFERENCES ordenes_compra(id) ON DELETE CASCADE
+        )
+        """
+    )
 
 
 def seed_db():
     execute(
-        "INSERT INTO empresas (nombre) VALUES (%s) ON CONFLICT (nombre) DO NOTHING",
-        ("GLAD",),
+        """
+        INSERT INTO empresas (
+            nombre, nit, direccion, dias_credito, plantilla_ocr, formato_descripcion_sat
+        )
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON CONFLICT (nombre) DO NOTHING
+        """,
+        (
+            "GLAD",
+            "4399620-5",
+            "",
+            30,
+            "glad_naturalisimo",
+            "Trabajos realizados según orden de compra No. {numero_orden} por proyecto {proyecto}.",
+        ),
     )
+
     execute(
-        "INSERT INTO empresas (nombre) VALUES (%s) ON CONFLICT (nombre) DO NOTHING",
-        ("Chocolates",),
+        """
+        INSERT INTO empresas (
+            nombre, nit, direccion, dias_credito, plantilla_ocr, formato_descripcion_sat
+        )
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON CONFLICT (nombre) DO NOTHING
+        """,
+        (
+            "Chocolates",
+            "",
+            "",
+            30,
+            "chocolates_best",
+            "Trabajos realizados según orden de compra No. {numero_orden} por proyecto {proyecto}.",
+        ),
     )
 
     empresas = {row["nombre"]: row["id"] for row in fetch_all("SELECT id, nombre FROM empresas")}

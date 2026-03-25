@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar factura{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <h2 class="mb-1">Registrar factura</h2>
+        <p class="text-muted mb-0">
+            Orden {{ orden.numero_orden }} - {{ orden.empresa }}
+        </p>
+    </div>
+
+    <form method="POST" action="/ordenes/{{ orden.id }}/factura/prellenar" enctype="multipart/form-data" class="mb-4">
+        <input type="hidden" name="archivo_factura_guardado" value="{{ archivo_factura_guardado or '' }}">
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <strong>1. Factura SAT</strong>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label">PDF de factura SAT</label>
+                        <input type="file" name="archivo_factura" class="form-control" accept=".pdf,application/pdf">
+                        {% if archivo_factura_guardado %}
+                            <small class="text-success">PDF de factura cargado temporalmente.</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-dark w-100">Leer factura PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if datos_detectados %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">
+                <strong>2. Datos detectados de la factura</strong>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3"><strong>Número:</strong> {{ datos_detectados.get("numero_factura") or "-" }}</div>
+                    <div class="col-md-3"><strong>Serie:</strong> {{ datos_detectados.get("serie_factura") or "-" }}</div>
+                    <div class="col-md-3"><strong>Fecha:</strong> {{ datos_detectados.get("fecha_factura") or "-" }}</div>
+                    <div class="col-md-3"><strong>Total:</strong> {{ datos_detectados.get("monto_facturado") or "-" }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </form>
+
+    <form method="POST" action="/ordenes/{{ orden.id }}/factura" enctype="multipart/form-data">
+        <input type="hidden" name="archivo_factura_guardado" value="{{ archivo_factura_guardado or '' }}">
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <strong>3. Datos finales de factura</strong>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Número de factura</label>
+                        <input type="text" name="numero_factura" class="form-control"
+                               value="{{ form_data.get('numero_factura', '') if form_data else '' }}" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha de factura</label>
+                        <input type="date" name="fecha_factura" class="form-control"
+                               value="{{ form_data.get('fecha_factura', '') if form_data else '' }}" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Monto facturado</label>
+                        <input type="number" step="0.01" name="monto_facturado" class="form-control"
+                               value="{{ form_data.get('monto_facturado', '') if form_data else '' }}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">NIT facturado</label>
+                        <input type="text" name="nit_facturado" class="form-control"
+                               value="{{ form_data.get('nit_facturado', '') if form_data else '' }}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Dirección facturada</label>
+                        <input type="text" name="direccion_facturada" class="form-control"
+                               value="{{ form_data.get('direccion_facturada', '') if form_data else '' }}">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Descripción SAT</label>
+                        <textarea name="descripcion_sat" rows="4" class="form-control" required>{{ form_data.get('descripcion_sat', '') if form_data else '' }}</textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Observaciones</label>
+                        <textarea name="observaciones" rows="3" class="form-control">{{ form_data.get('observaciones', '') if form_data else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Guardar factura</button>
+            <a href="/ordenes/{{ orden.id }}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

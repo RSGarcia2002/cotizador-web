@@ -3,3 +3,7 @@ WeasyPrint
 gunicorn
 psycopg2-binary
 openpyxl
+pypdf
+PyMuPDF
+pillow
+pytesseract
