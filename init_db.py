@@ -78,7 +78,6 @@ def init_db():
         """,
         ("correlativo", "1"),
     )
-<<<<<<< HEAD
     execute(
         """
         CREATE TABLE IF NOT EXISTS usuarios (
@@ -88,8 +87,6 @@ def init_db():
         )
         """
     )
-=======
->>>>>>> fe5b4f2c2390e361d3a9a9d15caaf0af4a550ce8
 
     # =========================
     # AMPLIAR TABLA EMPRESAS
