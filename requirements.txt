@@ -6,10 +6,6 @@ openpyxl
 pypdf
 PyMuPDF
 pillow
-<<<<<<< HEAD
 pytesseract
 Flask-Login
 python-dotenv
-=======
-pytesseract
->>>>>>> fe5b4f2c2390e361d3a9a9d15caaf0af4a550ce8
