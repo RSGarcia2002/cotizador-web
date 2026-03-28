@@ -73,6 +73,11 @@
               Órdenes de compra
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.path.startswith('/usuarios') %}active{% endif %}" href="/usuarios">
+              Usuarios
+            </a>
+          </li>
           <li class="nav-item ms-2">
             <a class="nav-link text-white-50" href="/logout">Cerrar sesión ({{ current_user.username }})</a>
           </li>

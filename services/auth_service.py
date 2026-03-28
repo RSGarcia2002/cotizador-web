@@ -30,3 +30,10 @@ def crear_usuario(username, password):
         "INSERT INTO usuarios (username, password_hash) VALUES (%s, %s)",
         (username, hash_)
     )
+
+def listar_usuarios():
+    return fetch_all("SELECT id, username FROM usuarios ORDER BY id ASC")
+
+
+def eliminar_usuario(user_id):
+    execute("DELETE FROM usuarios WHERE id = %s", (user_id,))    
