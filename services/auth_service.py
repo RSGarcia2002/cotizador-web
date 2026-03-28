@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from db import fetch_one, execute
+from db import fetch_one, execute, fetch_all
 
 
 class Usuario(UserMixin):
