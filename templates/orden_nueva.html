@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva orden de compra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <h2 class="mb-1">Nueva orden de compra</h2>
+        <p class="text-muted mb-0">Selecciona la empresa, sube el PDF y revisa los datos para SAT antes de guardar.</p>
+    </div>
+
+    <form method="POST" action="/ordenes/nueva/prellenar" enctype="multipart/form-data" class="mb-4">
+        <input type="hidden" name="archivo_orden_guardado" value="{{ archivo_orden_guardado or '' }}">
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <strong>1. Empresa y PDF</strong>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Empresa</label>
+                        <select name="empresa_id" id="empresa_id_pre" class="form-select" required>
+                            <option value="">Seleccione una empresa</option>
+                            {% for empresa in empresas %}
+                            <option value="{{ empresa.id }}"
+                                data-nit="{{ empresa.nit or '' }}"
+                                data-direccion="{{ empresa.direccion or '' }}"
+                                data-dias="{{ empresa.dias_credito or 30 }}"
+                                {% if form_data and form_data.get('empresa_id')|string == empresa.id|string %}selected{% endif %}>
+                                {{ empresa.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">PDF de la orden de compra</label>
+                        <input type="file" name="archivo_orden" class="form-control" accept=".pdf,application/pdf">
+                        {% if archivo_orden_guardado %}
+                            <small class="text-success">PDF cargado temporalmente.</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">NIT</label>
+                        <input type="text" id="nit_cliente_pre" class="form-control"
+                               value="{{ form_data.get('nit_cliente', '') if form_data else '' }}" readonly>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Días de crédito</label>
+                        <input type="number" id="dias_credito_pre" class="form-control"
+                               value="{{ form_data.get('dias_credito', '') if form_data else '' }}" readonly>
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-dark w-100">Extraer datos del PDF</button>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Dirección</label>
+                        <input type="text" id="direccion_cliente_pre" class="form-control"
+                               value="{{ form_data.get('direccion_cliente', '') if form_data else '' }}" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if datos_detectados %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">
+                <strong>2. Datos detectados del PDF</strong>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <strong>No. orden:</strong> {{ datos_detectados.get("numero_orden") or "-" }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Proyecto:</strong> {{ datos_detectados.get("proyecto") or "-" }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Total:</strong> {{ datos_detectados.get("total") or "-" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </form>
+
+    <form method="POST" action="/ordenes/nueva">
+        <input type="hidden" name="archivo_orden_guardado" value="{{ archivo_orden_guardado or '' }}">
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <strong>3. Datos de la orden y SAT</strong>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Empresa</label>
+                        <select name="empresa_id" id="empresa_id" class="form-select" required>
+                            <option value="">Seleccione una empresa</option>
+                            {% for empresa in empresas %}
+                            <option value="{{ empresa.id }}"
+                                data-nit="{{ empresa.nit or '' }}"
+                                data-direccion="{{ empresa.direccion or '' }}"
+                                data-dias="{{ empresa.dias_credito or 30 }}"
+                                {% if form_data and form_data.get('empresa_id')|string == empresa.id|string %}selected{% endif %}>
+                                {{ empresa.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">No. orden</label>
+                        <input type="text" name="numero_orden" id="numero_orden" class="form-control"
+                               value="{{ form_data.get('numero_orden', '') if form_data else '' }}" required>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Días de crédito</label>
+                        <input type="number" name="dias_credito" id="dias_credito" class="form-control"
+                               value="{{ form_data.get('dias_credito', '') if form_data else '' }}">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">NIT SAT</label>
+                        <input type="text" name="nit_cliente" id="nit_cliente" class="form-control"
+                               value="{{ form_data.get('nit_cliente', '') if form_data else '' }}" readonly>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label">Dirección SAT</label>
+                        <input type="text" name="direccion_cliente" id="direccion_cliente" class="form-control"
+                               value="{{ form_data.get('direccion_cliente', '') if form_data else '' }}" readonly>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Proyecto</label>
+                        <input type="text" name="proyecto" id="proyecto" class="form-control"
+                               value="{{ form_data.get('proyecto', '') if form_data else '' }}">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Monto total SAT</label>
+                        <input type="number" step="0.01" name="total" id="total" class="form-control"
+                               value="{{ form_data.get('total', '') if form_data else '' }}" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Descripción SAT</label>
+                        <textarea name="descripcion_sat" id="descripcion_sat" rows="3" class="form-control">{{ form_data.get('descripcion_sat', '') if form_data else '' }}</textarea>
+                    </div>
+
+                    <input type="hidden" name="descripcion_extraida" value="{{ form_data.get('descripcion_extraida', '') if form_data else '' }}">
+
+                    <input type="hidden" name="fecha_orden" value="{{ form_data.get('fecha_orden', '') if form_data else '' }}">
+                    <input type="hidden" name="subtotal" value="{{ form_data.get('subtotal', '') if form_data else '' }}">
+                    <input type="hidden" name="iva" value="{{ form_data.get('iva', '') if form_data else '' }}">
+                    <input type="hidden" name="moneda" value="{{ form_data.get('moneda', 'GTQ') if form_data else 'GTQ' }}">
+                    <input type="hidden" name="condiciones_pago" value="{{ form_data.get('condiciones_pago', '') if form_data else '' }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Guardar orden</button>
+            <a href="/ordenes" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function actualizarDatosEmpresa(selectId, nitId, direccionId, diasId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const option = select.options[select.selectedIndex];
+    if (!option) return;
+
+    const nit = option.getAttribute("data-nit") || "";
+    const direccion = option.getAttribute("data-direccion") || "";
+    const dias = option.getAttribute("data-dias") || "30";
+
+    const nitInput = document.getElementById(nitId);
+    const direccionInput = document.getElementById(direccionId);
+    const diasInput = document.getElementById(diasId);
+
+    if (nitInput) nitInput.value = nit;
+    if (direccionInput) direccionInput.value = direccion;
+    if (diasInput) diasInput.value = dias;
+}
+
+function actualizarDescripcionSat() {
+    const numeroOrden = document.getElementById("numero_orden")?.value || "";
+    const proyecto = document.getElementById("proyecto")?.value || "";
+    const total = document.getElementById("total")?.value || "";
+    const descripcionSat = document.getElementById("descripcion_sat");
+
+    const descripcion = `por servicios tecnicos segun orden de compra ${numeroOrden} ${proyecto}`.replace(/\s+/g, " ").trim();
+
+    if (descripcionSat) descripcionSat.value = descripcion;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const empresaPre = document.getElementById("empresa_id_pre");
+    const empresa = document.getElementById("empresa_id");
+    const numeroOrden = document.getElementById("numero_orden");
+    const proyecto = document.getElementById("proyecto");
+    const total = document.getElementById("total");
+
+    if (empresaPre) {
+        empresaPre.addEventListener("change", function () {
+            actualizarDatosEmpresa("empresa_id_pre", "nit_cliente_pre", "direccion_cliente_pre", "dias_credito_pre");
+        });
+        actualizarDatosEmpresa("empresa_id_pre", "nit_cliente_pre", "direccion_cliente_pre", "dias_credito_pre");
+    }
+
+    if (empresa) {
+        empresa.addEventListener("change", function () {
+            actualizarDatosEmpresa("empresa_id", "nit_cliente", "direccion_cliente", "dias_credito");
+        });
+        actualizarDatosEmpresa("empresa_id", "nit_cliente", "direccion_cliente", "dias_credito");
+    }
+
+    if (numeroOrden) numeroOrden.addEventListener("input", actualizarDescripcionSat);
+    if (proyecto) proyecto.addEventListener("input", actualizarDescripcionSat);
+    if (total) total.addEventListener("input", actualizarDescripcionSat);
+
+    actualizarDescripcionSat();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Historial{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Catálogos</h1>
+            <p class="text-muted mb-0">Empresas e ingenieros</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Agregar empresa</h2>
+                    <form method="POST" action="/agregar-empresa" class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" name="nombre" class="form-control" placeholder="Nombre de la empresa" required>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">NIT</label>
+                            <input type="text" name="nit" class="form-control" placeholder="NIT">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Días de crédito</label>
+                            <input type="number" name="dias_credito" class="form-control" value="30">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" name="direccion" class="form-control" placeholder="Dirección fiscal">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="activo" id="activo" checked>
+                                <label class="form-check-label" for="activo">
+                                    Empresa activa
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success">Guardar empresa</button>
+                        </div>
+                    </form>
+
+                    <hr>
+
+                    <h3 class="h6">Empresas registradas</h3>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>NIT</th>
+                                    <th>Días</th>
+                                    <th>OCR</th>
+                                    <th>Activa</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in empresas %}
+                                    <tr>
+                                        <td>{{ e["nombre"] }}</td>
+                                        <td>{{ e["nit"] or "-" }}</td>
+                                        <td>{{ e["dias_credito"] or 30 }}</td>
+                                        <td>{{ e["plantilla_ocr"] or "-" }}</td>
+                                        <td>{{ "Sí" if e["activo"] else "No" }}</td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalEmpresa{{ e['id'] }}">
+                                                    Editar
+                                                </button>
+
+                                                <form method="POST" action="/eliminar-empresa/{{ e['id'] }}"
+                                                    onsubmit="return confirm('¿Seguro que deseas eliminar esta empresa? También se eliminarán sus contactos y asuntos asociados.');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <div class="modal fade" id="modalEmpresa{{ e['id'] }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                            <div class="modal-content">
+                                                <form method="POST" action="/editar-empresa/{{ e['id'] }}">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Editar empresa</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+
+                                                    <div class="modal-body">
+                                                        <div class="row g-3">
+                                                            <div class="col-12">
+                                                                <label class="form-label">Nombre</label>
+                                                                <input type="text" name="nombre" class="form-control" value="{{ e['nombre'] }}" required>
+                                                            </div>
+
+                                                            <div class="col-12 col-md-6">
+                                                                <label class="form-label">NIT</label>
+                                                                <input type="text" name="nit" class="form-control" value="{{ e['nit'] or '' }}">
+                                                            </div>
+
+                                                            <div class="col-12 col-md-6">
+                                                                <label class="form-label">Días de crédito</label>
+                                                                <input type="number" name="dias_credito" class="form-control" value="{{ e['dias_credito'] or 30 }}">
+                                                            </div>
+
+                                                            <div class="col-12">
+                                                                <label class="form-label">Dirección</label>
+                                                                <input type="text" name="direccion" class="form-control" value="{{ e['direccion'] or '' }}">
+                                                            </div>
+
+                                                            <div class="col-12">
+                                                                <label class="form-label">Plantilla OCR</label>
+                                                                <input type="text" name="plantilla_ocr" class="form-control" value="{{ e['plantilla_ocr'] or '' }}">
+                                                            </div>
+
+                                                            <div class="col-12">
+                                                                <label class="form-label">Formato descripción SAT</label>
+                                                                <textarea name="formato_descripcion_sat" rows="3" class="form-control">{{ e['formato_descripcion_sat'] or '' }}</textarea>
+                                                            </div>
+
+                                                            <div class="col-12">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" name="activo"
+                                                                        id="activo{{ e['id'] }}"
+                                                                        {% if e["activo"] %}checked{% endif %}>
+                                                                    <label class="form-check-label" for="activo{{ e['id'] }}">
+                                                                        Empresa activa
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">No hay empresas.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Agregar ingeniero</h2>
+                    <form method="POST" action="/agregar-ingeniero" class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <select name="empresa_id" class="form-select" required>
+                                <option value="">Seleccione empresa</option>
+                                {% for e in empresas %}
+                                    <option value="{{ e['id'] }}">{{ e["nombre"] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <input type="text" name="titulo" class="form-control" placeholder="Ej. Ing., Licda., Arq.">
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <input type="text" name="nombre" class="form-control" placeholder="Nombre del contacto" required>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success">Guardar contacto</button>
+                        </div>
+                    </form>
+
+                    <hr>
+
+                    <h3 class="h6">Ingenieros registrados</h3>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Titulo</th>
+                                    <th>Nombre</th>
+                                    <th>Empresa</th>
+                                    <th>Accion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in ingenieros %}
+                                    <tr>
+                                        <td>{{ i["id"] }}</td>
+                                        <td>{{ i["titulo"] or "" }}</td>
+                                        <td>{{ i["nombre"] }}</td>
+                                        <td>{{ i["empresa_nombre"] }}</td>
+                                        <td>
+                                            <form method="POST" action="/eliminar-ingeniero/{{ i['id'] }}" onsubmit="return confirm('¿Seguro que deseas eliminar este contacto?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No hay ingenieros.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-4 mt-1">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Asuntos frecuentes</h2>
+
+                <form method="POST" action="/agregar-asunto" class="row g-3 mb-4">
+                    <div class="col-12 col-md-4">
+                        <select name="empresa_id" class="form-select">
+                            <option value="">General (todas)</option>
+                            {% for e in empresas %}
+                                <option value="{{ e['id'] }}">{{ e["nombre"] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <input type="text" name="asunto" class="form-control" placeholder="Escriba el asunto frecuente" required>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-success w-100">Guardar</button>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Empresa</th>
+                                <th>Asunto</th>
+                                <th>Accion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in asuntos %}
+                                <tr>
+                                    <td>{{ a["id"] }}</td>
+                                    <td>{{ a["empresa_nombre"] or "General" }}</td>
+                                    <td>{{ a["asunto"] }}</td>
+                                    <td>
+                                        <form method="POST" action="/eliminar-asunto/{{ a['id'] }}" onsubmit="return confirm('¿Seguro que deseas eliminar este asunto?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No hay asuntos registrados.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+{% endblock %}
