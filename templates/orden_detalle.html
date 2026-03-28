@@ -1,4 +1,14 @@
 {% extends "base.html" %}
+{% block extra_css %}
+<style>
+  @media (max-width: 767px) {
+    .input-group { flex-direction: column; }
+    .input-group .btn { border-radius: 6px !important; margin-top: 4px; width: 100%; }
+    .input-group .form-control,
+    .input-group textarea { border-radius: 6px !important; }
+  }
+</style>
+{% endblock %}
 
 {% block title %}Detalle orden{% endblock %}
 
