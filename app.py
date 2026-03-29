@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask
 from flask_login import LoginManager
 from db import init_pool
@@ -5,8 +8,6 @@ from init_db import init_db
 from routes.main import bp as main_bp
 from routes.auth import bp as auth_bp
 from services.auth_service import cargar_usuario
-from dotenv import load_dotenv
-load_dotenv()
 import os
 
 

@@ -34,7 +34,7 @@
                     <p>
                         <strong>Archivo orden:</strong>
                         {% if orden.archivo_orden %}
-                            <a href="/ordenes/archivo/{{ orden.archivo_orden }}" target="_blank">Ver PDF</a>
+                            <a href="{{ orden.archivo_orden }}" target="_blank">Ver PDF</a>
                         {% else %}
                             -
                         {% endif %}
@@ -117,14 +117,14 @@
             {% if orden.archivo_factura %}
             <p>
                 <strong>PDF factura:</strong>
-                <a href="/facturas/archivo/{{ orden.archivo_factura }}" target="_blank">Ver PDF</a>
+                <a href="{{ orden.archivo_factura }}" target="_blank">Ver PDF</a>
             </p>
             {% endif %}
 
             {% if orden.archivo_expediente %}
             <p class="mb-0">
                 <strong>Expediente unificado:</strong>
-                <a href="/facturas/archivo/{{ orden.archivo_expediente }}" target="_blank">Ver expediente</a>
+                <a href="{{ orden.archivo_expediente }}" target="_blank">Ver expediente</a>
             </p>
             {% endif %}
         </div>

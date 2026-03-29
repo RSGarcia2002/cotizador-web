@@ -6,6 +6,7 @@ import io
 import os
 from uuid import uuid4
 from werkzeug.utils import secure_filename
+from services.storage_service import subir_pdf
 
 
 from services.catalog_service import (
@@ -460,7 +461,12 @@ def registrar_factura(orden_id):
                 ruta_factura = os.path.join(current_app.config["UPLOAD_FOLDER_FACTURAS"], archivo_factura_guardado)
 
                 generar_expediente_unificado(ruta_orden, ruta_factura, ruta_expediente)
-                data["archivo_expediente"] = nombre_expediente
+                try:
+                    url_expediente = subir_pdf(ruta_expediente, carpeta="cotizador/expedientes")
+                    os.remove(ruta_expediente)
+                    data["archivo_expediente"] = url_expediente
+                except Exception:
+                    data["archivo_expediente"] = nombre_expediente
 
             registrar_factura_orden(orden_id, data)
             flash("Factura registrada correctamente.", "success")
@@ -524,15 +530,18 @@ def archivo_permitido_pdf(filename):
 def guardar_pdf_temporal_factura(archivo):
     if not archivo or not archivo.filename:
         return ""
-
     if not archivo_permitido_pdf(archivo.filename):
         return ""
-
     nombre_seguro = secure_filename(archivo.filename)
     nombre_final = f"{uuid4().hex}_{nombre_seguro}"
-    ruta_guardado = os.path.join(current_app.config["UPLOAD_FOLDER_FACTURAS"], nombre_final)
-    archivo.save(ruta_guardado)
-    return nombre_final
+    ruta_temp = os.path.join(current_app.config["UPLOAD_FOLDER_FACTURAS"], nombre_final)
+    archivo.save(ruta_temp)
+    try:
+        url = subir_pdf(ruta_temp, carpeta="cotizador/facturas")
+        os.remove(ruta_temp)
+        return url
+    except Exception as e:
+        return ruta_temp
 
 @bp.route("/ordenes/archivo/<path:nombre_archivo>")
 def ver_archivo_orden(nombre_archivo):
@@ -586,28 +595,18 @@ def extraer_pdf_orden(orden_id):
 def guardar_pdf_temporal_orden(archivo):
     if not archivo or not archivo.filename:
         return ""
-
     if not archivo_permitido_pdf(archivo.filename):
         return ""
-
     nombre_seguro = secure_filename(archivo.filename)
     nombre_final = f"{uuid4().hex}_{nombre_seguro}"
-    ruta_guardado = os.path.join(current_app.config["UPLOAD_FOLDER_ORDENES"], nombre_final)
-    archivo.save(ruta_guardado)
-    return nombre_final
-
-def guardar_pdf_temporal_orden(archivo):
-    if not archivo or not archivo.filename:
-        return ""
-
-    if not archivo_permitido_pdf(archivo.filename):
-        return ""
-
-    nombre_seguro = secure_filename(archivo.filename)
-    nombre_final = f"{uuid4().hex}_{nombre_seguro}"
-    ruta_guardado = os.path.join(current_app.config["UPLOAD_FOLDER_ORDENES"], nombre_final)
-    archivo.save(ruta_guardado)
-    return nombre_final
+    ruta_temp = os.path.join(current_app.config["UPLOAD_FOLDER_ORDENES"], nombre_final)
+    archivo.save(ruta_temp)
+    try:
+        url = subir_pdf(ruta_temp, carpeta="cotizador/ordenes")
+        os.remove(ruta_temp)  # borra el archivo local después de subir
+        return url
+    except Exception as e:
+        return ruta_temp  # si falla Cloudinary, usa local como fallback
 
 @bp.route("/ordenes/nueva/prellenar", methods=["POST"])
 def prellenar_nueva_orden():
