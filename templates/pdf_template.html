@@ -13,7 +13,7 @@
         font-family: "Times New Roman", Times, serif;
         font-size: 15px;
         color: #000;
-        line-height: 1.15;
+        line-height: 1.5;
       }
 
       table {
@@ -74,15 +74,16 @@
       }
     </style>
   </head>
+  <p class="right top">{{ data.fecha }}</p>
+  <br>
   <body>
-    <table class="sin-borde">
+    <table class="sin-borde" >
       <tr>
         <td>
           {{ data.empresa }}<br />
            {{ data.ingeniero }}<br />
           Presente.
         </td>
-        <td class="right top">{{ data.fecha }}</td>
       </tr>
     </table>
 
@@ -168,9 +169,16 @@
     <p class="bold">PRECIO EN LETRAS...............{{ data.total_letras }}</p>
 
     <p class="mt-3">Esperando poder servirles y agradeciendo su atención.</p>
-    <br><br><br><br><br>
-    <p class="bold">{{ data.contacto_nombre }}</p>
-    <p>Teléfono {{ data.contacto_telefono }}</p>
-    <p>{{ data.contacto_correo }}</p>
+    <br>
+
+        <table class="sin-borde" >
+      <tr>
+        <td>
+         {{ data.contacto_nombre }}<br />
+         Teléfono {{ data.contacto_telefono }} <br />
+         {{ data.contacto_correo }}
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
