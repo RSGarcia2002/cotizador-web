@@ -64,6 +64,32 @@ def require_login():
         from flask import redirect, url_for
         return redirect(url_for("auth.login"))
 
+
+def _es_url_remota(valor: str) -> bool:
+    return isinstance(valor, str) and (
+        valor.startswith("http://") or valor.startswith("https://")
+    )
+
+
+def _resolver_ruta_pdf(valor: str, upload_folder: str) -> str:
+    if not valor:
+        return ""
+    valor = valor.strip()
+    if _es_url_remota(valor):
+        return valor
+    if os.path.isabs(valor):
+        return valor
+    return os.path.join(upload_folder, valor)
+
+
+def _resolver_url_publica_archivo(valor: str, endpoint: str) -> str:
+    if not valor:
+        return ""
+    valor = valor.strip()
+    if _es_url_remota(valor):
+        return valor
+    return url_for(endpoint, nombre_archivo=os.path.basename(valor))
+
 @bp.route("/")
 def index():
     fecha = fecha_guatemala()
@@ -421,7 +447,22 @@ def detalle_orden(orden_id):
         flash("La orden no existe.", "warning")
         return redirect("/ordenes")
 
-    return render_template("orden_detalle.html", orden=orden) 
+    return render_template(
+        "orden_detalle.html",
+        orden=orden,
+        archivo_orden_url=_resolver_url_publica_archivo(
+            orden.get("archivo_orden"),
+            "main.ver_archivo_orden",
+        ),
+        archivo_factura_url=_resolver_url_publica_archivo(
+            orden.get("archivo_factura"),
+            "main.ver_archivo_factura",
+        ),
+        archivo_expediente_url=_resolver_url_publica_archivo(
+            orden.get("archivo_expediente"),
+            "main.ver_archivo_factura",
+        ),
+    )
 
 @bp.route("/ordenes/<int:orden_id>/factura", methods=["GET", "POST"])
 def registrar_factura(orden_id):
@@ -457,8 +498,14 @@ def registrar_factura(orden_id):
                 nombre_expediente = f"expediente_orden_{orden_id}_{uuid4().hex}.pdf"
                 ruta_expediente = os.path.join(current_app.config["UPLOAD_FOLDER_FACTURAS"], nombre_expediente)
 
-                ruta_orden = os.path.join(current_app.config["UPLOAD_FOLDER_ORDENES"], orden["archivo_orden"])
-                ruta_factura = os.path.join(current_app.config["UPLOAD_FOLDER_FACTURAS"], archivo_factura_guardado)
+                ruta_orden = _resolver_ruta_pdf(
+                    orden["archivo_orden"],
+                    current_app.config["UPLOAD_FOLDER_ORDENES"],
+                )
+                ruta_factura = _resolver_ruta_pdf(
+                    archivo_factura_guardado,
+                    current_app.config["UPLOAD_FOLDER_FACTURAS"],
+                )
 
                 generar_expediente_unificado(ruta_orden, ruta_factura, ruta_expediente)
                 try:
@@ -540,11 +587,12 @@ def guardar_pdf_temporal_factura(archivo):
         url = subir_pdf(ruta_temp, carpeta="cotizador/facturas")
         os.remove(ruta_temp)
         return url
-    except Exception as e:
-        return ruta_temp
+    except Exception:
+        return nombre_final
 
 @bp.route("/ordenes/archivo/<path:nombre_archivo>")
 def ver_archivo_orden(nombre_archivo):
+    nombre_archivo = os.path.basename(nombre_archivo)
     return send_from_directory(
         current_app.config["UPLOAD_FOLDER_ORDENES"],
         nombre_archivo
@@ -561,9 +609,9 @@ def extraer_pdf_orden(orden_id):
         return redirect(f"/ordenes/{orden_id}")
 
     try:
-        ruta_pdf = os.path.join(
+        ruta_pdf = _resolver_ruta_pdf(
+            orden["archivo_orden"],
             current_app.config["UPLOAD_FOLDER_ORDENES"],
-            orden["archivo_orden"]
         )
 
         resultado = extraer_texto_pdf(ruta_pdf)
@@ -605,8 +653,8 @@ def guardar_pdf_temporal_orden(archivo):
         url = subir_pdf(ruta_temp, carpeta="cotizador/ordenes")
         os.remove(ruta_temp)  # borra el archivo local después de subir
         return url
-    except Exception as e:
-        return ruta_temp  # si falla Cloudinary, usa local como fallback
+    except Exception:
+        return nombre_final  # si falla Cloudinary, usa archivo local guardado
 
 @bp.route("/ordenes/nueva/prellenar", methods=["POST"])
 def prellenar_nueva_orden():
@@ -655,7 +703,10 @@ def prellenar_nueva_orden():
         )
 
     empresa = obtener_empresa_por_id(int(empresa_id))
-    ruta_pdf = os.path.join(current_app.config["UPLOAD_FOLDER_ORDENES"], archivo_orden)
+    ruta_pdf = _resolver_ruta_pdf(
+        archivo_orden,
+        current_app.config["UPLOAD_FOLDER_ORDENES"],
+    )
 
     resultado = extraer_texto_pdf(ruta_pdf)
     datos_detectados = {}
@@ -735,7 +786,10 @@ def prellenar_factura(orden_id):
         flash("Debes subir el PDF de la factura SAT.", "warning")
         return redirect(f"/ordenes/{orden_id}/factura")
 
-    ruta_pdf = os.path.join(current_app.config["UPLOAD_FOLDER_FACTURAS"], archivo_factura_guardado)
+    ruta_pdf = _resolver_ruta_pdf(
+        archivo_factura_guardado,
+        current_app.config["UPLOAD_FOLDER_FACTURAS"],
+    )
     resultado_pdf = extraer_texto_pdf(ruta_pdf)
     datos_detectados = {}
 
@@ -764,6 +818,7 @@ def prellenar_factura(orden_id):
     )   
 @bp.route("/facturas/archivo/<path:nombre_archivo>")
 def ver_archivo_factura(nombre_archivo):
+    nombre_archivo = os.path.basename(nombre_archivo)
     return send_from_directory(
         current_app.config["UPLOAD_FOLDER_FACTURAS"],
         nombre_archivo

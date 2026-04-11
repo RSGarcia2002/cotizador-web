@@ -33,8 +33,8 @@
                 <div class="card-body">
                     <p>
                         <strong>Archivo orden:</strong>
-                        {% if orden.archivo_orden %}
-                            <a href="{{ orden.archivo_orden }}" target="_blank">Ver PDF</a>
+                        {% if archivo_orden_url %}
+                            <a href="{{ archivo_orden_url }}" target="_blank">Ver PDF</a>
                         {% else %}
                             -
                         {% endif %}
@@ -114,17 +114,17 @@
             <p><strong>Estado pago:</strong> {{ orden.estado_pago or "-" }}</p>
             <p><strong>Fecha pago real:</strong> {{ orden.fecha_pago_real or "-" }}</p>
 
-            {% if orden.archivo_factura %}
+            {% if archivo_factura_url %}
             <p>
                 <strong>PDF factura:</strong>
-                <a href="{{ orden.archivo_factura }}" target="_blank">Ver PDF</a>
+                <a href="{{ archivo_factura_url }}" target="_blank">Ver PDF</a>
             </p>
             {% endif %}
 
-            {% if orden.archivo_expediente %}
+            {% if archivo_expediente_url %}
             <p class="mb-0">
                 <strong>Expediente unificado:</strong>
-                <a href="{{ orden.archivo_expediente }}" target="_blank">Ver expediente</a>
+                <a href="{{ archivo_expediente_url }}" target="_blank">Ver expediente</a>
             </p>
             {% endif %}
         </div>

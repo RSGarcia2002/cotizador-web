@@ -60,10 +60,7 @@ def parser_glad_naturalisimo(texto: str):
     if totales:
         resultado["total"] = limpiar_numero(totales[-1])
 
-        return resultado
-
-import re
-
+    return resultado
 
 def parser_chocolates_best(texto: str):
     resultado = {

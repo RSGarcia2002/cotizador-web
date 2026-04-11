@@ -625,6 +625,15 @@ CERO QUETZALES EXACTOS</textarea
         return select.options[select.selectedIndex]?.text || "";
       }
 
+      function escapeHTML(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
       function generarVistaPrevia() {
         const fecha = document.getElementById("fecha").value;
         const noReferencia = document.getElementById("noReferencia").value;
@@ -651,8 +660,8 @@ CERO QUETZALES EXACTOS</textarea
         let filasHTML = "";
 
         for (let i = 0; i < cantidades.length; i++) {
-          const cantidad = cantidades[i].value || "";
-          const descripcion = descripciones[i].value || "";
+          const cantidad = escapeHTML(cantidades[i].value || "");
+          const descripcion = escapeHTML(descripciones[i].value || "");
           const precioUnitario = parseFloat(
             precios[i].value || 0,
           ).toLocaleString("en-US", {
@@ -882,8 +891,8 @@ CERO QUETZALES EXACTOS</textarea
         let filasHTML = "";
 
         for (let i = 0; i < cantidades.length; i++) {
-          const cantidad = cantidades[i].value || "";
-          const descripcion = descripciones[i].value || "";
+          const cantidad = escapeHTML(cantidades[i].value || "");
+          const descripcion = escapeHTML(descripciones[i].value || "");
           const precioUnitario = parseFloat(
             precios[i].value || 0,
           ).toLocaleString("en-US", {
@@ -988,13 +997,15 @@ function guardarEdicion() {
     const items = [];
 
     for (let i = 0; i < cantidades.length; i++) {
-        const cantidad = cantidades[i].value || "";
-        const descripcion = descripciones[i].value || "";
+        const cantidadRaw = cantidades[i].value || "";
+        const descripcionRaw = descripciones[i].value || "";
+        const cantidad = escapeHTML(cantidadRaw);
+        const descripcion = escapeHTML(descripcionRaw);
         const precio = precios[i].value || "0";
 
         items.push({
-            cantidad: cantidad,
-            descripcion: descripcion,
+            cantidad: cantidadRaw,
+            descripcion: descripcionRaw,
             precio: precio
         });
 
@@ -1003,7 +1014,7 @@ function guardarEdicion() {
             maximumFractionDigits: 2
         });
 
-        const subtotalNumero = (parseFloat(cantidad || 0) * parseFloat(precio || 0)).toLocaleString("en-US", {
+        const subtotalNumero = (parseFloat(cantidadRaw || 0) * parseFloat(precio || 0)).toLocaleString("en-US", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
@@ -1054,7 +1065,8 @@ function guardarEdicion() {
         total_letras: totalLetras,
         contacto_nombre: contactoNombre,
         contacto_telefono: contactoTelefono,
-        contacto_correo: contactoCorreo
+        contacto_correo: contactoCorreo,
+        csrf_token: document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || ""
     };
 
     for (const key in campos) {
@@ -1442,7 +1454,7 @@ function guardarEdicion() {
     <input
       type="hidden"
       id="itemsDuplicados"
-      value="{{ duplicado.items_json|safe }}"
+      value="{{ duplicado.items_json }}"
     />
     <input type="hidden" id="modoEdicion" value="{{ duplicado.modo_edicion }}">
     <input type="hidden" id="cotizacionId" value="{{ duplicado.id }}">
