@@ -25,6 +25,7 @@ from services.catalog_service import (
 from services.cotizacion_service import (
     actualizar_cotizacion,
     actualizar_estado,
+    construir_filas_html_desde_items,
     construir_params_duplicado,
     construir_params_edicion,
     crear_cotizacion,
@@ -138,7 +139,13 @@ def index():
 @bp.route("/exportar-pdf", methods=["POST"])
 def exportar_pdf():
     data = request.form.to_dict()
+    data["filas_html"] = construir_filas_html_desde_items(data.get("items_json", "[]"))
     crear_cotizacion(data)
+    try:
+        total_numero = float(str(data.get("total_numero", "0")).replace(",", "").strip() or 0)
+        data["total_numero"] = f"{total_numero:,.2f}"
+    except Exception:
+        data["total_numero"] = data.get("total_numero", "0")
     html = render_template("pdf_template.html", data=data)
     pdf = HTML(string=html).write_pdf()
     incrementar_correlativo()

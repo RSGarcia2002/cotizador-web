@@ -1,5 +1,7 @@
 from datetime import datetime
 from urllib.parse import urlencode
+import json
+import html
 from db import fetch_all, fetch_one, execute, execute_returning_one
 from services.helpers import fecha_corta_desde_texto
 
@@ -28,7 +30,61 @@ def incrementar_correlativo():
 
 
 
+def _a_float(valor) -> float:
+    try:
+        if valor is None:
+            return 0.0
+        if isinstance(valor, str):
+            valor = valor.replace(",", "").strip()
+        return float(valor or 0)
+    except Exception:
+        return 0.0
+
+
+def construir_filas_html_desde_items(items_json: str) -> str:
+    try:
+        items = json.loads(items_json or "[]")
+        if not isinstance(items, list):
+            return ""
+    except Exception:
+        return ""
+
+    filas = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        cantidad_raw = item.get("cantidad", "")
+        descripcion = str(item.get("descripcion", "") or "")
+        precio_num = _a_float(item.get("precio", 0))
+        cantidad_num = _a_float(cantidad_raw)
+        subtotal_num = cantidad_num * precio_num
+
+        cantidad = html.escape(str(cantidad_raw or ""))
+        descripcion = html.escape(descripcion)
+        precio_fmt = f"{precio_num:,.2f}"
+        subtotal_fmt = f"{subtotal_num:,.2f}"
+
+        filas.append(
+            f"""
+            <tr>
+                <td style="border:1px solid #000; vertical-align:bottom; text-align:left; padding:2px 3px;">{cantidad}</td>
+                <td style="border:1px solid #000; vertical-align:top; padding:2px 3px;">{descripcion}</td>
+                <td style="border:1px solid #000; vertical-align:bottom; text-align:right; padding:2px 6px;">
+                    {precio_fmt}
+                </td>
+                <td style="border:1px solid #000; vertical-align:bottom; text-align:right; padding:2px 6px;">
+                    {subtotal_fmt}
+                </td>
+            </tr>
+            """
+        )
+
+    return "".join(filas)
+
+
 def crear_cotizacion(data: dict):
+    items_json = data.get("items_json", "")
+    filas_html = construir_filas_html_desde_items(items_json)
     execute(
         """
         INSERT INTO cotizaciones (
@@ -57,8 +113,8 @@ def crear_cotizacion(data: dict):
             data.get("contacto_nombre", ""),
             data.get("contacto_telefono", ""),
             data.get("contacto_correo", ""),
-            data.get("filas_html", ""),
-            data.get("items_json", ""),
+            filas_html,
+            items_json,
         ),
     )
 
@@ -96,6 +152,8 @@ def actualizar_estado(cotizacion_id: int, estado: str):
 
 
 def actualizar_cotizacion(data: dict):
+    items_json = data.get("items_json", "")
+    filas_html = construir_filas_html_desde_items(items_json)
     execute(
         """
         UPDATE cotizaciones
@@ -129,8 +187,8 @@ def actualizar_cotizacion(data: dict):
             data.get("contacto_nombre", ""),
             data.get("contacto_telefono", ""),
             data.get("contacto_correo", ""),
-            data.get("filas_html", ""),
-            data.get("items_json", ""),
+            filas_html,
+            items_json,
             float(data.get("total_numero", 0) or 0),
             data.get("total_letras", ""),
             data.get("fecha", ""),
@@ -183,6 +241,8 @@ def construir_params_edicion(c):
 
 
 def preparar_data_pdf(cotizacion: dict):
+    items_json = cotizacion.get("items_json") or "[]"
+    filas_html = construir_filas_html_desde_items(items_json)
     return {
         "fecha": cotizacion["fecha"],
         "fecha_corta": fecha_corta_desde_texto(cotizacion["fecha"]),
@@ -195,7 +255,7 @@ def preparar_data_pdf(cotizacion: dict):
         "tiempo_entrega": cotizacion["tiempo_entrega"],
         "validez": cotizacion["validez"],
         "encargado": cotizacion["encargado"],
-        "filas_html": cotizacion["filas_html"],
+        "filas_html": filas_html,
         "total_numero": f"{cotizacion['total_numero']:,.2f}",
         "total_letras": cotizacion["total_letras"],
         "contacto_nombre": cotizacion["contacto_nombre"],
