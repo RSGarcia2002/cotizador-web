@@ -3,40 +3,42 @@
 {% block title %}Marcar como pagada{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="mb-4">
-        <h2 class="mb-1">Marcar orden como pagada</h2>
-        <p class="text-muted mb-0">
-            Orden {{ orden.numero_orden }} - {{ orden.empresa }}
-        </p>
-    </div>
+<div class="page-block">
+  <div class="page-header">
+    <h2 class="mb-1">Marcar orden como pagada</h2>
+    <p class="page-subtitle">Orden {{ orden.numero_orden }} - {{ orden.empresa }}</p>
+  </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <p><strong>Factura:</strong> {{ orden.numero_factura or "-" }}</p>
-            <p><strong>Fecha factura:</strong> {{ orden.fecha_factura or "-" }}</p>
-            <p><strong>Fecha estimada de pago:</strong> {{ orden.fecha_estimada_pago or "-" }}</p>
-            <p class="mb-0"><strong>Seguimiento actual:</strong> {{ orden.semaforo }}</p>
-        </div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <p><strong>Factura:</strong> {{ orden.numero_factura or "-" }}</p>
+      <p><strong>Fecha factura:</strong> {{ orden.fecha_factura or "-" }}</p>
+      <p><strong>Fecha estimada de pago:</strong> {{ orden.fecha_estimada_pago or "-" }}</p>
+      <p class="mb-0"><strong>Seguimiento actual:</strong> {{ orden.semaforo }}</p>
     </div>
+  </div>
 
-    <form method="POST" action="/ordenes/{{ orden.id }}/pagar" class="mt-4">
+  <form method="POST" action="/ordenes/{{ orden.id }}/pagar">
+    <div class="card">
+      <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label">Fecha real de pago</label>
-                <input type="date" name="fecha_pago_real" class="form-control" required>
-            </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha real de pago</label>
+            <input type="date" name="fecha_pago_real" class="form-control" required>
+          </div>
 
-            <div class="col-12">
-                <label class="form-label">Observaciones</label>
-                <textarea name="observaciones" rows="3" class="form-control" placeholder="Opcional"></textarea>
-            </div>
+          <div class="col-12">
+            <label class="form-label">Observaciones</label>
+            <textarea name="observaciones" rows="3" class="form-control" placeholder="Opcional"></textarea>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <div class="d-flex gap-2 mt-4">
-            <button type="submit" class="btn btn-success">Guardar pago</button>
-            <a href="/ordenes/{{ orden.id }}" class="btn btn-outline-secondary">Cancelar</a>
-        </div>
-    </form>
+    <div class="d-flex gap-2 mt-4">
+      <button type="submit" class="btn btn-success">Guardar pago</button>
+      <a href="/ordenes/{{ orden.id }}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+  </form>
 </div>
 {% endblock %}

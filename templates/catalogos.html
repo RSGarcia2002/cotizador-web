@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Historial{% endblock %}
+{% block title %}Catálogos{% endblock %}
 
 {% block content %}
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-block">
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-1">Catálogos</h1>
-            <p class="text-muted mb-0">Empresas e ingenieros</p>
+            <p class="page-subtitle">Empresas, contactos y asuntos frecuentes.</p>
         </div>
     </div>
 
     <div class="row g-4">
         <div class="col-12 col-lg-5">
-            <div class="card shadow-sm">
+            <div class="card">
                 <div class="card-body">
                     <h2 class="h5 mb-3">Agregar empresa</h2>
                     <form method="POST" action="/agregar-empresa" class="row g-3">
@@ -167,7 +167,7 @@
         </div>
 
         <div class="col-12 col-lg-7">
-            <div class="card shadow-sm">
+            <div class="card">
                 <div class="card-body">
                     <h2 class="h5 mb-3">Agregar ingeniero</h2>
                     <form method="POST" action="/agregar-ingeniero" class="row g-3">
@@ -201,7 +201,7 @@
                                     <th>Titulo</th>
                                     <th>Nombre</th>
                                     <th>Empresa</th>
-                                    <th>Accion</th>
+                                    <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -231,7 +231,7 @@
     </div>
     <div class="row g-4 mt-1">
     <div class="col-12">
-        <div class="card shadow-sm">
+        <div class="card">
             <div class="card-body">
                 <h2 class="h5 mb-3">Asuntos frecuentes</h2>
 
@@ -259,7 +259,7 @@
                                 <th>ID</th>
                                 <th>Empresa</th>
                                 <th>Asunto</th>
-                                <th>Accion</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>

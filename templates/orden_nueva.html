@@ -3,16 +3,16 @@
 {% block title %}Nueva orden de compra{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="mb-4">
+<div class="page-block">
+    <div class="page-header">
         <h2 class="mb-1">Nueva orden de compra</h2>
-        <p class="text-muted mb-0">Selecciona la empresa, sube el PDF y revisa los datos para SAT antes de guardar.</p>
+        <p class="page-subtitle">Selecciona la empresa, sube el PDF y revisa los datos para SAT antes de guardar.</p>
     </div>
 
     <form method="POST" action="/ordenes/nueva/prellenar" enctype="multipart/form-data" class="mb-4">
         <input type="hidden" name="archivo_orden_guardado" value="{{ archivo_orden_guardado or '' }}">
 
-        <div class="card shadow-sm">
+        <div class="card">
             <div class="card-header">
                 <strong>1. Empresa y PDF</strong>
             </div>
@@ -68,7 +68,7 @@
         </div>
 
         {% if datos_detectados %}
-        <div class="card shadow-sm mt-4">
+        <div class="card mt-4">
             <div class="card-header">
                 <strong>2. Datos detectados del PDF</strong>
             </div>
@@ -92,7 +92,7 @@
     <form method="POST" action="/ordenes/nueva">
         <input type="hidden" name="archivo_orden_guardado" value="{{ archivo_orden_guardado or '' }}">
 
-        <div class="card shadow-sm">
+        <div class="card">
             <div class="card-header">
                 <strong>3. Datos de la orden y SAT</strong>
             </div>
@@ -199,7 +199,6 @@ function actualizarDatosEmpresa(selectId, nitId, direccionId, diasId) {
 function actualizarDescripcionSat() {
     const numeroOrden = document.getElementById("numero_orden")?.value || "";
     const proyecto = document.getElementById("proyecto")?.value || "";
-    const total = document.getElementById("total")?.value || "";
     const descripcionSat = document.getElementById("descripcion_sat");
 
     const descripcion = `por servicios tecnicos segun orden de compra ${numeroOrden} ${proyecto}`.replace(/\s+/g, " ").trim();

@@ -2,82 +2,84 @@
 {% block title %}Historial{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-  <div>
-    <h1 class="h3 mb-1">Cotizaciones</h1>
-    <p class="text-muted mb-0">Control general de cotizaciones realizadas</p>
+<div class="page-block">
+  <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+    <div>
+      <h1 class="h3">Cotizaciones</h1>
+      <p class="page-subtitle">Control general de cotizaciones realizadas.</p>
+    </div>
   </div>
-</div>
 
-<div class="card shadow-sm mb-4">
-  <div class="card-body">
-    <p class="text-muted mb-1 small">Ingresos del mes (Aprobadas)</p>
-    <p class="display-6 mb-0 fw-bold">Q {{ "%.2f"|format(total_mes) }}</p>
+  <div class="card mb-4">
+    <div class="card-body py-4">
+      <p class="text-muted mb-1 small">Ingresos del mes (Aprobadas)</p>
+      <p class="display-6 mb-0 fw-bold">Q {{ "%.2f"|format(total_mes) }}</p>
+    </div>
   </div>
-</div>
 
-<div class="card shadow-sm">
-  <div class="card-body p-0 p-md-3">
-    <div class="table-responsive">
-      <table class="table table-bordered align-middle mb-0 tabla-mobile">
-        <thead class="table-light">
-          <tr>
-            <th>No. Ref.</th>
-            <th>Fecha</th>
-            <th>Empresa</th>
-            <th>Asunto</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% if cotizaciones %}
-            {% for c in cotizaciones %}
+  <div class="card table-card">
+    <div class="card-body p-0 p-md-3">
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle tabla-mobile">
+          <thead class="table-light">
             <tr>
-              <td data-label="No. Ref.">{{ c["no_referencia"] }}</td>
-              <td data-label="Fecha">{{ c["fecha"] }}</td>
-              <td data-label="Empresa">{{ c["empresa"] }}</td>
-              <td data-label="Asunto">{{ c["asunto"] }}</td>
-              <td data-label="Total">Q {{ "%.2f"|format(c["total_numero"]) }}</td>
-              <td data-label="Estado">
-                {% if c["estado"] == "Aprobada" %}
-                  <span class="badge bg-success">Aprobada</span>
-                {% elif c["estado"] == "Rechazada" %}
-                  <span class="badge bg-danger">Rechazada</span>
-                {% else %}
-                  <span class="badge bg-warning text-dark">Pendiente</span>
-                {% endif %}
-              </td>
-              <td data-label="Acciones">
-                <div class="d-flex flex-wrap gap-1">
-                  {% if c["filas_html"] %}
-                    <a href="/descargar-pdf/{{ c['id'] }}" target="_blank" class="btn btn-sm btn-outline-danger">PDF</a>
+              <th>No. Ref.</th>
+              <th>Fecha</th>
+              <th>Empresa</th>
+              <th>Asunto</th>
+              <th>Total</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if cotizaciones %}
+              {% for c in cotizaciones %}
+              <tr>
+                <td data-label="No. Ref.">{{ c["no_referencia"] }}</td>
+                <td data-label="Fecha">{{ c["fecha"] }}</td>
+                <td data-label="Empresa">{{ c["empresa"] }}</td>
+                <td data-label="Asunto">{{ c["asunto"] }}</td>
+                <td data-label="Total">Q {{ "%.2f"|format(c["total_numero"]) }}</td>
+                <td data-label="Estado">
+                  {% if c["estado"] == "Aprobada" %}
+                    <span class="badge bg-success">Aprobada</span>
+                  {% elif c["estado"] == "Rechazada" %}
+                    <span class="badge bg-danger">Rechazada</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Pendiente</span>
                   {% endif %}
-                  <a href="/duplicar/{{ c['id'] }}" class="btn btn-sm btn-primary">Duplicar</a>
-                  <a href="/editar/{{ c['id'] }}" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <form method="POST" action="/eliminar/{{ c['id'] }}" onsubmit="return confirm('¿Eliminar esta cotización?')">
-                    <button class="btn btn-sm btn-outline-danger">Eliminar</button>
-                  </form>
-                  <form method="POST" action="/cambiar-estado/{{ c['id'] }}" class="d-flex gap-1">
-                    <select name="estado" class="form-select form-select-sm" style="width:auto">
-                      <option value="Pendiente" {% if c["estado"] == "Pendiente" %}selected{% endif %}>Pendiente</option>
-                      <option value="Aprobada" {% if c["estado"] == "Aprobada" %}selected{% endif %}>Aprobada</option>
-                      <option value="Rechazada" {% if c["estado"] == "Rechazada" %}selected{% endif %}>Rechazada</option>
-                    </select>
-                    <button class="btn btn-sm btn-dark">✓</button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-            {% endfor %}
-          {% else %}
-            <tr>
-              <td colspan="7" class="text-center py-4 text-muted">No hay cotizaciones guardadas todavía.</td>
-            </tr>
-          {% endif %}
-        </tbody>
-      </table>
+                </td>
+                <td data-label="Acciones">
+                  <div class="d-flex flex-wrap gap-1">
+                    {% if c["filas_html"] %}
+                      <a href="/descargar-pdf/{{ c['id'] }}" target="_blank" class="btn btn-sm btn-outline-danger">PDF</a>
+                    {% endif %}
+                    <a href="/duplicar/{{ c['id'] }}" class="btn btn-sm btn-primary">Duplicar</a>
+                    <a href="/editar/{{ c['id'] }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                    <form method="POST" action="/eliminar/{{ c['id'] }}" onsubmit="return confirm('¿Eliminar esta cotización?')">
+                      <button class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    </form>
+                    <form method="POST" action="/cambiar-estado/{{ c['id'] }}" class="d-flex gap-1">
+                      <select name="estado" class="form-select form-select-sm select-auto">
+                        <option value="Pendiente" {% if c["estado"] == "Pendiente" %}selected{% endif %}>Pendiente</option>
+                        <option value="Aprobada" {% if c["estado"] == "Aprobada" %}selected{% endif %}>Aprobada</option>
+                        <option value="Rechazada" {% if c["estado"] == "Rechazada" %}selected{% endif %}>Rechazada</option>
+                      </select>
+                      <button class="btn btn-sm btn-dark">✓</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center py-4 text-muted">No hay cotizaciones guardadas todavía.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

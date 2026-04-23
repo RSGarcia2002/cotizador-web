@@ -1,21 +1,9 @@
 {% extends "base.html" %}
-{% block extra_css %}
-<style>
-  @media (max-width: 767px) {
-    .input-group { flex-direction: column; }
-    .input-group .btn { border-radius: 6px !important; margin-top: 4px; width: 100%; }
-    .input-group .form-control,
-    .input-group textarea { border-radius: 6px !important; }
-  }
-</style>
-{% endblock %}
-
 {% block title %}Detalle orden{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="text-end d-flex gap-2 justify-content-end flex-wrap">
-
+<div class="page-block">
+    <div class="page-header d-flex gap-2 justify-content-end flex-wrap">
         {% if orden.numero_factura and orden.estado_pago != 'Pagada' %}
             <a href="/ordenes/{{ orden.id }}/pagar" class="btn btn-success">Marcar pagada</a>
         {% endif %}
@@ -23,10 +11,10 @@
         <a href="/ordenes/{{ orden.id }}/factura" class="btn btn-primary">Registrar factura</a>
         <a href="/ordenes" class="btn btn-outline-secondary">Volver</a>
     </div>
-    <br>
+
     <div class="row g-4">
         <div class="col-lg-6">
-            <div class="card shadow-sm">
+            <div class="card h-100">
                 <div class="card-header">
                     <strong>Datos de la orden</strong>
                 </div>
@@ -54,14 +42,14 @@
         </div>
 
         <div class="col-lg-6">
-            <div class="card shadow-sm">
+            <div class="card h-100">
                 <div class="card-header">
                     <strong>Datos listos para SAT</strong>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label"><strong>NIT</strong></label>
-                        <div class="input-group">
+                        <div class="input-group input-group-stack-mobile">
                             <input type="text" id="nit_sat" class="form-control" value="{{ orden.empresa_nit or '' }}" readonly>
                             <button type="button" class="btn btn-outline-primary" onclick="copiarTexto('nit_sat')">Copiar</button>
                         </div>
@@ -69,7 +57,7 @@
 
                     <div class="mb-3">
                         <label class="form-label"><strong>Dirección</strong></label>
-                        <div class="input-group">
+                        <div class="input-group input-group-stack-mobile">
                             <input type="text" id="direccion_sat" class="form-control" value="{{ orden.empresa_direccion or '' }}" readonly>
                             <button type="button" class="btn btn-outline-primary" onclick="copiarTexto('direccion_sat')">Copiar</button>
                         </div>
@@ -77,7 +65,7 @@
 
                     <div class="mb-3">
                         <label class="form-label"><strong>Descripción SAT</strong></label>
-                        <div class="input-group">
+                        <div class="input-group input-group-stack-mobile">
                             <textarea id="descripcion_sat" class="form-control" rows="4" readonly>{{ orden.descripcion_sat_sugerida }}</textarea>
                             <button type="button" class="btn btn-outline-primary" onclick="copiarTexto('descripcion_sat')">Copiar</button>
                         </div>
@@ -85,7 +73,7 @@
 
                     <div class="mb-3">
                         <label class="form-label"><strong>Monto total</strong></label>
-                        <div class="input-group">
+                        <div class="input-group input-group-stack-mobile">
                             <input type="text" id="monto_sat" class="form-control" value="{{ '%.2f'|format(orden.total or 0) }}" readonly>
                             <button type="button" class="btn btn-outline-primary" onclick="copiarTexto('monto_sat')">Copiar</button>
                         </div>
@@ -100,11 +88,9 @@
             </div>
         </div>
     </div>
-    
-
 
     {% if orden.numero_factura %}
-    <div class="card shadow-sm mt-4">
+    <div class="card mt-4">
         <div class="card-header">
             <strong>Factura asociada</strong>
         </div>

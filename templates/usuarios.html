@@ -3,59 +3,67 @@
 {% block title %}Usuarios{% endblock %}
 
 {% block content %}
-<div class="row">
-  <div class="col-md-5">
-    <h4 class="mb-3">Crear usuario</h4>
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <form method="POST" action="/usuarios/crear">
-          <div class="mb-3">
-            <label class="form-label">Usuario</label>
-            <input type="text" name="username" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Contraseña</label>
-            <input type="password" name="password" class="form-control" required>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Crear</button>
-        </form>
-      </div>
-    </div>
+<div class="page-block">
+  <div class="page-header">
+    <h1 class="h3 mb-1">Usuarios</h1>
+    <p class="page-subtitle">Gestiona accesos y permisos de ingreso al cotizador.</p>
   </div>
 
-  <div class="col-md-7">
-    <h4 class="mb-3">Usuarios existentes</h4>
-    <div class="card shadow-sm">
-      <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>#</th>
-              <th>Usuario</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for u in usuarios %}
-            <tr>
-              <td>{{ u.id }}</td>
-              <td>{{ u.username }}</td>
-              <td class="text-end">
-                {% if u.id != current_user.id %}
-                <form method="POST" action="/usuarios/eliminar/{{ u.id }}" style="display:inline">
-                  <button type="submit" class="btn btn-sm btn-outline-danger"
-                    onclick="return confirm('¿Eliminar usuario {{ u.username }}?')">
-                    Eliminar
-                  </button>
-                </form>
-                {% else %}
-                <span class="text-muted small">(tú)</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+  <div class="row g-4">
+    <div class="col-md-5">
+      <div class="card h-100">
+        <div class="card-body">
+          <h4 class="mb-3">Crear usuario</h4>
+          <form method="POST" action="/usuarios/crear">
+            <div class="mb-3">
+              <label class="form-label">Usuario</label>
+              <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Contraseña</label>
+              <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Crear</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-7">
+      <div class="card h-100 table-card">
+        <div class="card-body p-0">
+          <div class="p-3 pb-0">
+            <h4 class="mb-2">Usuarios existentes</h4>
+          </div>
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Usuario</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in usuarios %}
+              <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.username }}</td>
+                <td class="text-end">
+                  {% if u.id != current_user.id %}
+                  <form method="POST" action="/usuarios/eliminar/{{ u.id }}" class="inline-form">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar usuario {{ u.username }}?')">
+                      Eliminar
+                    </button>
+                  </form>
+                  {% else %}
+                  <span class="text-muted small">(tú)</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
