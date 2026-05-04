@@ -162,6 +162,11 @@
 
           <h2 class="h5 titulo-seccion">Detalle de la oferta</h2>
           <div id="tablaContainer"></div>
+          <div class="mt-2 mb-3">
+            <button type="button" class="btn btn-outline-primary" onclick="agregarItem()">
+              + Agregar ítem
+            </button>
+          </div>
 
           <div class="row mt-3 g-3">
             <div class="col-12 col-lg-6 ms-lg-auto">
@@ -328,10 +333,50 @@ CERO QUETZALES EXACTOS</textarea
                 ingenieroSelect.appendChild(option);
             });
             }
+      function crearFilaItemHTML(numero, item = {}) {
+        const cantidad = item.cantidad ?? 1;
+        const descripcion = item.descripcion ?? "";
+        const precio = item.precio ?? 0;
+
+        return `
+          <tr>
+            <td>${numero}</td>
+            <td>
+              <input type="number" class="form-control cantidad" min="0" value="${cantidad}" oninput="calcularTotales()">
+            </td>
+            <td class="position-relative">
+              <input type="text" class="form-control descripcion" placeholder="Descripción del ítem" autocomplete="off" value="${escapeHTML(descripcion)}" oninput="mostrarSugerenciasDescripcion(this)" onkeydown="manejarTeclasDescripcion(event, this)">
+              <div class="list-group position-absolute w-100 shadow-sm sugerencias-descripcion suggestions-box"></div>
+            </td>
+            <td>
+              <input type="number" class="form-control precio" min="0" step="1" value="${precio}" oninput="calcularTotales()">
+            </td>
+            <td>
+              <input type="text" class="form-control subtotal" value="Q 0.00" readonly>
+            </td>
+          </tr>
+        `;
+      }
+
+      function recolectarItemsActuales() {
+        const filas = document.querySelectorAll("#tablaContainer tbody tr");
+        return Array.from(filas).map((fila) => ({
+          cantidad: fila.querySelector(".cantidad")?.value || 1,
+          descripcion: fila.querySelector(".descripcion")?.value || "",
+          precio: fila.querySelector(".precio")?.value || 0,
+        }));
+      }
+
+      function renumerarFilas() {
+        const filas = document.querySelectorAll("#tablaContainer tbody tr");
+        filas.forEach((fila, index) => {
+          const celdaNumero = fila.querySelector("td");
+          if (celdaNumero) celdaNumero.textContent = index + 1;
+        });
+      }
+
       function generarTabla() {
-        const cantidad = parseInt(
-          document.getElementById("cantidadItems").value,
-        );
+        const cantidad = parseInt(document.getElementById("cantidadItems").value, 10);
         const container = document.getElementById("tablaContainer");
 
         if (!cantidad || cantidad < 1) {
@@ -339,49 +384,51 @@ CERO QUETZALES EXACTOS</textarea
           return;
         }
 
+        const actuales = recolectarItemsActuales();
         let html = `
-                  <div class="table-responsive">
-                      <table class="table table-bordered align-middle">
-                          <thead class="table-light">
-                              <tr>
-                                  <th style="width: 8%;">No.</th>
-                                  <th style="width: 12%;">Cantidad</th>
-                                  <th>Descripción</th>
-                                  <th style="width: 18%;">Precio Unitario</th>
-                                  <th style="width: 18%;">Total</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-              `;
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 8%;">No.</th>
+                  <th style="width: 12%;">Cantidad</th>
+                  <th>Descripción</th>
+                  <th style="width: 18%;">Precio Unitario</th>
+                  <th style="width: 18%;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
 
         for (let i = 1; i <= cantidad; i++) {
-          html += `
-                      <tr>
-                          <td>${i}</td>
-                          <td>
-                              <input type="number" class="form-control cantidad" min="0" value="1" oninput="calcularTotales()">
-                          </td>
-                          <td class="position-relative">
-                              <input type="text" class="form-control descripcion" placeholder="Descripción del ítem" autocomplete="off" oninput="mostrarSugerenciasDescripcion(this)" onkeydown="manejarTeclasDescripcion(event, this)">
-                              <div class="list-group position-absolute w-100 shadow-sm sugerencias-descripcion suggestions-box"></div>
-                          </td>
-                          <td>
-                              <input type="number" class="form-control precio" min="0" step="1" value="0" oninput="calcularTotales()">
-                          </td>
-                          <td>
-                              <input type="text" class="form-control subtotal" value="Q 0.00" readonly>
-                          </td>
-                      </tr>
-                  `;
+          const itemExistente = actuales[i - 1] || {};
+          html += crearFilaItemHTML(i, itemExistente);
         }
 
         html += `
-                          </tbody>
-                      </table>
-                  </div>
-              `;
+              </tbody>
+            </table>
+          </div>
+        `;
 
         container.innerHTML = html;
+        calcularTotales();
+      }
+
+      function agregarItem() {
+        const container = document.getElementById("tablaContainer");
+        if (!container.querySelector("table")) {
+          const cantidadActual = parseInt(document.getElementById("cantidadItems").value || "0", 10);
+          document.getElementById("cantidadItems").value = cantidadActual > 0 ? cantidadActual : 1;
+          generarTabla();
+          return;
+        }
+
+        const tbody = container.querySelector("tbody");
+        tbody.insertAdjacentHTML("beforeend", crearFilaItemHTML(1).trim());
+
+        renumerarFilas();
+        document.getElementById("cantidadItems").value = tbody.querySelectorAll("tr").length;
         calcularTotales();
       }
 
