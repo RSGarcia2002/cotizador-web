@@ -354,6 +354,11 @@ CERO QUETZALES EXACTOS</textarea
             <td>
               <input type="text" class="form-control subtotal" value="Q 0.00" readonly>
             </td>
+            <td class="text-center">
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarItem(this)">
+                Eliminar
+              </button>
+            </td>
           </tr>
         `;
       }
@@ -395,6 +400,7 @@ CERO QUETZALES EXACTOS</textarea
                   <th>Descripción</th>
                   <th style="width: 18%;">Precio Unitario</th>
                   <th style="width: 18%;">Total</th>
+                  <th style="width: 10%;">Acción</th>
                 </tr>
               </thead>
               <tbody>
@@ -427,6 +433,17 @@ CERO QUETZALES EXACTOS</textarea
         const tbody = container.querySelector("tbody");
         tbody.insertAdjacentHTML("beforeend", crearFilaItemHTML(1).trim());
 
+        renumerarFilas();
+        document.getElementById("cantidadItems").value = tbody.querySelectorAll("tr").length;
+        calcularTotales();
+      }
+
+      function eliminarItem(button) {
+        const fila = button.closest("tr");
+        const tbody = fila?.parentElement;
+        if (!fila || !tbody) return;
+
+        fila.remove();
         renumerarFilas();
         document.getElementById("cantidadItems").value = tbody.querySelectorAll("tr").length;
         calcularTotales();
