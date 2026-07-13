@@ -21,7 +21,7 @@
                 id="fecha"
                 class="form-control"
                 value="{{ duplicado.fecha }}"
-                readonly
+                {% if duplicado.modo_edicion != "1" %}readonly{% endif %}
               />
             </div>
 
@@ -585,6 +585,30 @@ CERO QUETZALES EXACTOS</textarea
           .replace(/'/g, "&#39;");
       }
 
+      function obtenerFechaCorta(fechaTexto) {
+        const partes = String(fechaTexto || "").replace("Guatemala,", "").trim().split(" de ");
+        if (partes.length === 3) {
+          return `${partes[1]} de ${partes[2]}`;
+        }
+
+        const fechaObj = new Date();
+        const meses = [
+          "enero",
+          "febrero",
+          "marzo",
+          "abril",
+          "mayo",
+          "junio",
+          "julio",
+          "agosto",
+          "septiembre",
+          "octubre",
+          "noviembre",
+          "diciembre",
+        ];
+        return meses[fechaObj.getMonth()] + " de " + fechaObj.getFullYear();
+      }
+
       function generarVistaPrevia() {
         const fecha = document.getElementById("fecha").value;
         const noReferencia = document.getElementById("noReferencia").value;
@@ -641,24 +665,7 @@ CERO QUETZALES EXACTOS</textarea
     `;
         }
 
-        // convertir fecha a "marzo de 2026"
-        const fechaObj = new Date();
-        const meses = [
-          "enero",
-          "febrero",
-          "marzo",
-          "abril",
-          "mayo",
-          "junio",
-          "julio",
-          "agosto",
-          "septiembre",
-          "octubre",
-          "noviembre",
-          "diciembre",
-        ];
-        const fechaCorta =
-          meses[fechaObj.getMonth()] + " de " + fechaObj.getFullYear();
+        const fechaCorta = obtenerFechaCorta(fecha);
 
         const html = `
     <div style="font-family:'Times New Roman', Times, serif; font-size:14px;">
@@ -797,23 +804,7 @@ CERO QUETZALES EXACTOS</textarea
         const descripciones = document.querySelectorAll(".descripcion");
         const precios = document.querySelectorAll(".precio");
 
-        const fechaObj = new Date();
-        const meses = [
-          "enero",
-          "febrero",
-          "marzo",
-          "abril",
-          "mayo",
-          "junio",
-          "julio",
-          "agosto",
-          "septiembre",
-          "octubre",
-          "noviembre",
-          "diciembre",
-        ];
-        const fechaCorta =
-          meses[fechaObj.getMonth()] + " de " + fechaObj.getFullYear();
+        const fechaCorta = obtenerFechaCorta(fecha);
 
         let filasHTML = "";
 
