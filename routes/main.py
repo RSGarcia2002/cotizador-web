@@ -158,8 +158,16 @@ def exportar_pdf():
 
 @bp.route("/cotizaciones")
 def cotizaciones():
-    cotizaciones_data, total_mes = listar_cotizaciones()
-    return render_template("cotizaciones.html", cotizaciones=cotizaciones_data, total_mes=total_mes)
+    busqueda = request.args.get("q", "").strip()
+    estado = request.args.get("estado", "").strip()
+    cotizaciones_data, total_mes = listar_cotizaciones(busqueda, estado)
+    return render_template(
+        "cotizaciones.html",
+        cotizaciones=cotizaciones_data,
+        total_mes=total_mes,
+        busqueda=busqueda,
+        estado_filtro=estado,
+    )
 
 
 @bp.route("/cambiar-estado/<int:id>", methods=["POST"])

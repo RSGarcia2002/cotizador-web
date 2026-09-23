@@ -18,7 +18,47 @@
   </div>
 
   <div class="card table-card">
-    <div class="card-body p-0 p-md-3">
+    <div class="card-body p-0">
+      <form method="GET" action="/cotizaciones" class="quote-filters" role="search">
+        <div class="quote-search-field">
+          <label for="buscar-cotizacion" class="form-label">Buscar cotización</label>
+          <div class="input-group">
+            <span class="input-group-text" aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              id="buscar-cotizacion"
+              name="q"
+              class="form-control"
+              value="{{ busqueda }}"
+              placeholder="Referencia, empresa, asunto o ingeniero"
+              autocomplete="off"
+            >
+          </div>
+        </div>
+        <div class="quote-status-field">
+          <label for="estado-cotizacion" class="form-label">Estado</label>
+          <select id="estado-cotizacion" name="estado" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="Pendiente" {% if estado_filtro == "Pendiente" %}selected{% endif %}>Pendiente</option>
+            <option value="Aprobada" {% if estado_filtro == "Aprobada" %}selected{% endif %}>Aprobada</option>
+            <option value="Rechazada" {% if estado_filtro == "Rechazada" %}selected{% endif %}>Rechazada</option>
+          </select>
+        </div>
+        <div class="quote-filter-actions">
+          <button type="submit" class="btn btn-primary">Buscar</button>
+          {% if busqueda or estado_filtro %}
+            <a href="/cotizaciones" class="btn btn-outline-secondary">Limpiar</a>
+          {% endif %}
+        </div>
+      </form>
+
+      <div class="quote-results-summary" aria-live="polite">
+        <span>{{ cotizaciones|length }} resultado{% if cotizaciones|length != 1 %}s{% endif %}</span>
+        {% if busqueda or estado_filtro %}
+          <span class="text-muted">para los filtros seleccionados</span>
+        {% endif %}
+      </div>
+
       <div class="table-responsive">
         <table class="table table-bordered align-middle tabla-mobile">
           <thead class="table-light">
@@ -74,7 +114,13 @@
               {% endfor %}
             {% else %}
               <tr>
-                <td colspan="7" class="text-center py-4 text-muted">No hay cotizaciones guardadas todavía.</td>
+                <td colspan="7" class="text-center py-5 text-muted">
+                  {% if busqueda or estado_filtro %}
+                    No encontramos cotizaciones que coincidan con la búsqueda.
+                  {% else %}
+                    No hay cotizaciones guardadas todavía.
+                  {% endif %}
+                </td>
               </tr>
             {% endif %}
           </tbody>

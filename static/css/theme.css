@@ -309,6 +309,47 @@ main.page-wrapper {
   padding: 0.5rem;
 }
 
+.quote-filters {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 0.32fr) auto;
+  gap: 1rem;
+  align-items: end;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.8), rgba(255, 255, 255, 0.95));
+}
+
+.quote-filters .form-label {
+  font-size: 0.82rem;
+  margin-bottom: 0.4rem;
+}
+
+.quote-filters .input-group-text {
+  border-color: #ccd7e4;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  background: #fff;
+  color: var(--color-text-muted);
+  font-size: 1.15rem;
+}
+
+.quote-filters .input-group .form-control {
+  border-left: 0;
+}
+
+.quote-filter-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.quote-results-summary {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.8rem 1.25rem 0.35rem;
+  color: var(--color-text-soft);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
 @media (max-width: 991px) {
   main.page-wrapper {
     padding-top: var(--space-3);
@@ -320,6 +361,21 @@ main.page-wrapper {
 }
 
 @media (max-width: 767px) {
+  .quote-filters {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .quote-filter-actions .btn {
+    flex: 1;
+  }
+
+  .quote-results-summary {
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+  }
+
   .preview-doc {
     padding: 1.2rem;
   }
