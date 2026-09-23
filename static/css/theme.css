@@ -311,7 +311,7 @@ main.page-wrapper {
 
 .quote-filters {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(180px, 0.32fr) auto;
+  grid-template-columns: minmax(260px, 1fr) auto;
   gap: 1rem;
   align-items: end;
   padding: 1.25rem;

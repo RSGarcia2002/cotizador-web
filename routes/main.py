@@ -24,7 +24,6 @@ from services.catalog_service import (
 )
 from services.cotizacion_service import (
     actualizar_cotizacion,
-    actualizar_estado,
     construir_filas_html_desde_items,
     construir_params_duplicado,
     construir_params_edicion,
@@ -159,21 +158,12 @@ def exportar_pdf():
 @bp.route("/cotizaciones")
 def cotizaciones():
     busqueda = request.args.get("q", "").strip()
-    estado = request.args.get("estado", "").strip()
-    cotizaciones_data, total_mes = listar_cotizaciones(busqueda, estado)
+    cotizaciones_data = listar_cotizaciones(busqueda)
     return render_template(
         "cotizaciones.html",
         cotizaciones=cotizaciones_data,
-        total_mes=total_mes,
         busqueda=busqueda,
-        estado_filtro=estado,
     )
-
-
-@bp.route("/cambiar-estado/<int:id>", methods=["POST"])
-def cambiar_estado(id):
-    actualizar_estado(id, request.form.get("estado", "Pendiente"))
-    return redirect("/cotizaciones")
 
 
 @bp.route("/descargar-pdf/<int:id>")

@@ -120,12 +120,11 @@ def crear_cotizacion(data: dict):
 
 
 
-def listar_cotizaciones(busqueda: str = "", estado: str = ""):
+def listar_cotizaciones(busqueda: str = ""):
     condiciones = []
     parametros = []
 
     busqueda = (busqueda or "").strip()
-    estado = (estado or "").strip()
 
     if busqueda:
         patron = f"%{busqueda}%"
@@ -137,40 +136,23 @@ def listar_cotizaciones(busqueda: str = "", estado: str = ""):
         )
         parametros.extend([patron, patron, patron, patron])
 
-    if estado in {"Pendiente", "Aprobada", "Rechazada"}:
-        condiciones.append("estado = %s")
-        parametros.append(estado)
-
     where_sql = f"WHERE {' AND '.join(condiciones)}" if condiciones else ""
     cotizaciones = fetch_all(
         f"""
         SELECT id, no_referencia, fecha, empresa, ingeniero, asunto,
-               total_numero, estado, filas_html, items_json
+               total_numero, filas_html, items_json
         FROM cotizaciones
         {where_sql}
         ORDER BY id DESC
         """,
         tuple(parametros),
     )
-    total_aprobadas = fetch_one(
-        """
-        SELECT COALESCE(SUM(total_numero), 0) AS total
-        FROM cotizaciones
-        WHERE estado = %s
-        """,
-        ("Aprobada",),
-    )
-    return cotizaciones, total_aprobadas["total"]
+    return cotizaciones
 
 
 
 def obtener_cotizacion(cotizacion_id: int):
     return fetch_one("SELECT * FROM cotizaciones WHERE id = %s", (cotizacion_id,))
-
-
-
-def actualizar_estado(cotizacion_id: int, estado: str):
-    execute("UPDATE cotizaciones SET estado = %s WHERE id = %s", (estado, cotizacion_id))
 
 
 

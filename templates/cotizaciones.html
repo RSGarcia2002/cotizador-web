@@ -10,13 +10,6 @@
     </div>
   </div>
 
-  <div class="card mb-4">
-    <div class="card-body py-4">
-      <p class="text-muted mb-1 small">Ingresos del mes (Aprobadas)</p>
-      <p class="display-6 mb-0 fw-bold">Q {{ "%.2f"|format(total_mes) }}</p>
-    </div>
-  </div>
-
   <div class="card table-card">
     <div class="card-body p-0">
       <form method="GET" action="/cotizaciones" class="quote-filters" role="search">
@@ -35,18 +28,9 @@
             >
           </div>
         </div>
-        <div class="quote-status-field">
-          <label for="estado-cotizacion" class="form-label">Estado</label>
-          <select id="estado-cotizacion" name="estado" class="form-select">
-            <option value="">Todos los estados</option>
-            <option value="Pendiente" {% if estado_filtro == "Pendiente" %}selected{% endif %}>Pendiente</option>
-            <option value="Aprobada" {% if estado_filtro == "Aprobada" %}selected{% endif %}>Aprobada</option>
-            <option value="Rechazada" {% if estado_filtro == "Rechazada" %}selected{% endif %}>Rechazada</option>
-          </select>
-        </div>
         <div class="quote-filter-actions">
           <button type="submit" class="btn btn-primary">Buscar</button>
-          {% if busqueda or estado_filtro %}
+          {% if busqueda %}
             <a href="/cotizaciones" class="btn btn-outline-secondary">Limpiar</a>
           {% endif %}
         </div>
@@ -54,8 +38,8 @@
 
       <div class="quote-results-summary" aria-live="polite">
         <span>{{ cotizaciones|length }} resultado{% if cotizaciones|length != 1 %}s{% endif %}</span>
-        {% if busqueda or estado_filtro %}
-          <span class="text-muted">para los filtros seleccionados</span>
+        {% if busqueda %}
+          <span class="text-muted">para la búsqueda realizada</span>
         {% endif %}
       </div>
 
@@ -68,7 +52,6 @@
               <th>Empresa</th>
               <th>Asunto</th>
               <th>Total</th>
-              <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -81,15 +64,6 @@
                 <td data-label="Empresa">{{ c["empresa"] }}</td>
                 <td data-label="Asunto">{{ c["asunto"] }}</td>
                 <td data-label="Total">Q {{ "%.2f"|format(c["total_numero"]) }}</td>
-                <td data-label="Estado">
-                  {% if c["estado"] == "Aprobada" %}
-                    <span class="badge bg-success">Aprobada</span>
-                  {% elif c["estado"] == "Rechazada" %}
-                    <span class="badge bg-danger">Rechazada</span>
-                  {% else %}
-                    <span class="badge bg-warning text-dark">Pendiente</span>
-                  {% endif %}
-                </td>
                 <td data-label="Acciones">
                   <div class="d-flex flex-wrap gap-1">
                     {% if c["filas_html"] %}
@@ -100,22 +74,14 @@
                     <form method="POST" action="/eliminar/{{ c['id'] }}" onsubmit="return confirm('¿Eliminar esta cotización?')">
                       <button class="btn btn-sm btn-outline-danger">Eliminar</button>
                     </form>
-                    <form method="POST" action="/cambiar-estado/{{ c['id'] }}" class="d-flex gap-1">
-                      <select name="estado" class="form-select form-select-sm select-auto">
-                        <option value="Pendiente" {% if c["estado"] == "Pendiente" %}selected{% endif %}>Pendiente</option>
-                        <option value="Aprobada" {% if c["estado"] == "Aprobada" %}selected{% endif %}>Aprobada</option>
-                        <option value="Rechazada" {% if c["estado"] == "Rechazada" %}selected{% endif %}>Rechazada</option>
-                      </select>
-                      <button class="btn btn-sm btn-dark">✓</button>
-                    </form>
                   </div>
                 </td>
               </tr>
               {% endfor %}
             {% else %}
               <tr>
-                <td colspan="7" class="text-center py-5 text-muted">
-                  {% if busqueda or estado_filtro %}
+                <td colspan="6" class="text-center py-5 text-muted">
+                  {% if busqueda %}
                     No encontramos cotizaciones que coincidan con la búsqueda.
                   {% else %}
                     No hay cotizaciones guardadas todavía.
